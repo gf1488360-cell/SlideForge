@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>FaridAI Writer</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,600;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0c0c0f;
+  --surface: #111116;
+  --card: #16161d;
+  --card2: #1c1c26;
+  --border: #242430;
+  --border2: #2e2e3e;
+  --gold: #c9a84c;
+  --gold2: #e8c97a;
+  --gold3: rgba(201,168,76,0.12);
+  --text: #e8e6f0;
+  --text2: #9896aa;
+  --text3: #5a5868;
+  --white: #ffffff;
+  --green: #2ecc71;
+  --blue: #4a9eff;
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;overscroll-behavior:none;}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:var(--bg);
+  color:var(--text);
+  max-width:430px;
+  margin:0 auto;
+  min-height:100vh;
+  position:relative;
+  overflow-x:hidden;
+}
+
+/* Ambient background */
+body::before{
+  content:'';position:fixed;top:0;left:0;right:0;bottom:0;
+  background:
+    radial-gradient(ellipse 60% 40% at 20% 10%, rgba(201,168,76,0.06) 0%, transparent 60%),
+    radial-gradient(ellipse 50% 40% at 80% 90%, rgba(74,158,255,0.04) 0%, transparent 60%);
+  pointer-events:none;z-index:0;
+}
+
+/* SCREENS */
+.screen{display:none;min-height:100vh;flex-direction:column;position:fixed;top:0;left:0;right:0;bottom:0;overflow-y:auto;z-index:1;}
+.screen.active{display:flex;z-index:2;}
+
+/* ===== HOME ===== */
+#homeScreen{background:var(--bg);}
+
+.home-hero{
+  padding:60px 24px 40px;
+  text-align:center;
+  position:relative;z-index:2;
+}
+
+.brand-badge{
+  display:inline-flex;align-items:center;gap:8px;
+  background:var(--gold3);border:1px solid rgba(201,168,76,0.25);
+  border-radius:99px;padding:5px 14px;
+  font-size:11px;font-weight:600;color:var(--gold);
+  letter-spacing:1.5px;text-transform:uppercase;
+  margin-bottom:24px;
+}
+
+.brand-badge::before{
+  content:'';width:6px;height:6px;border-radius:50%;
+  background:var(--gold);box-shadow:0 0 8px var(--gold);
+  animation:pulse 2s infinite;
+}
+
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:0.5;transform:scale(1.4)}}
+
+.home-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:48px;font-weight:700;
+  color:var(--white);line-height:1.05;
+  letter-spacing:-1px;margin-bottom:6px;
+}
+
+.home-title span{
+  color:var(--gold);
+  font-style:italic;
+}
+
+.home-sub{
+  font-size:13px;color:var(--text2);
+  line-height:1.7;margin-bottom:40px;
+  font-weight:300;
+}
+
+/* MODULE CARDS */
+.modules-wrap{padding:0 20px 40px;position:relative;z-index:2;}
+
+.mod-card{
+  border-radius:20px;padding:26px;margin-bottom:14px;
+  cursor:pointer;position:relative;overflow:hidden;
+  transition:transform 0.2s,box-shadow 0.2s;
+  border:1px solid var(--border2);
+  animation:cardRise 0.5s ease both;
+}
+
+.mod-card:nth-child(1){animation-delay:0.1s;}
+.mod-card:nth-child(2){animation-delay:0.2s;}
+
+@keyframes cardRise{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+
+.mod-card:active{transform:scale(0.97);}
+
+.mod-card.mail{background:linear-gradient(135deg,#1a1608 0%,#1e1a0a 50%,#14120a 100%);}
+.mod-card.chat{background:linear-gradient(135deg,#080f1a 0%,#0a1220 50%,#080d18 100%);}
+
+.mod-card::before{
+  content:'';position:absolute;top:0;right:0;
+  width:150px;height:150px;border-radius:50%;
+  opacity:0.15;
+}
+.mod-card.mail::before{background:radial-gradient(circle,#c9a84c,transparent);}
+.mod-card.chat::before{background:radial-gradient(circle,#4a9eff,transparent);}
+
+.mod-card-icon{
+  width:52px;height:52px;border-radius:16px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:24px;margin-bottom:18px;
+  position:relative;z-index:1;
+}
+.mail .mod-card-icon{background:rgba(201,168,76,0.15);border:1px solid rgba(201,168,76,0.2);}
+.chat .mod-card-icon{background:rgba(74,158,255,0.12);border:1px solid rgba(74,158,255,0.2);}
+
+.mod-card-label{
+  font-size:10px;font-weight:600;letter-spacing:2px;
+  text-transform:uppercase;margin-bottom:8px;
+  position:relative;z-index:1;
+}
+.mail .mod-card-label{color:var(--gold);}
+.chat .mod-card-label{color:var(--blue);}
+
+.mod-card-title{
+  font-family:'Cormorant Garamond',serif;
+  font-size:26px;font-weight:700;color:var(--white);
+  margin-bottom:8px;position:relative;z-index:1;
+  line-height:1.1;
+}
+
+.mod-card-desc{
+  font-size:12px;color:rgba(255,255,255,0.45);
+  line-height:1.6;position:relative;z-index:1;
+  font-weight:300;
+}
+
+.mod-card-arrow{
+  position:absolute;bottom:24px;right:24px;
+  width:36px;height:36px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:16px;
+}
+.mail .mod-card-arrow{background:rgba(201,168,76,0.15);color:var(--gold);}
+.chat .mod-card-arrow{background:rgba(74,158,255,0.12);color:var(--blue);}
+
+.home-footer{
+  text-align:center;padding:0 24px 30px;
+  font-size:11px;color:var(--text3);
+  position:relative;z-index:2;
+  line-height:1.7;
+}
+
+/* ===== MODULE SCREENS ===== */
+.mod-screen{background:var(--bg);}
+
+.mod-header{
+  padding:48px 20px 18px;
+  display:flex;align-items:center;gap:14px;
+  position:sticky;top:0;z-index:50;
+  background:rgba(12,12,15,0.95);
+  backdrop-filter:blur(20px);
+  border-bottom:1px solid var(--border);
+}
+
+.back-btn{
+  width:38px;height:38px;border-radius:11px;
+  background:var(--card);border:1px solid var(--border2);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:16px;color:var(--text2);flex-shrink:0;
+  transition:all 0.2s;
+}
+.back-btn:active{background:var(--card2);}
+
+.mod-header-info{flex:1;}
+.mod-header-info h2{
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;font-weight:700;color:var(--white);
+  line-height:1.1;
+}
+.mod-header-info p{font-size:11px;color:var(--text3);margin-top:2px;}
+
+.new-btn{
+  padding:7px 14px;border-radius:10px;
+  border:1px solid var(--border2);background:var(--card);
+  font-size:11px;font-weight:600;color:var(--text2);
+  cursor:pointer;white-space:nowrap;transition:all 0.2s;
+}
+.new-btn:active{opacity:0.7;}
+.mail-accent .new-btn{border-color:rgba(201,168,76,0.3);color:var(--gold);}
+.chat-accent .new-btn{border-color:rgba(74,158,255,0.3);color:var(--blue);}
+
+/* ===== CONTEXT FORM ===== */
+.context-panel{
+  padding:16px 20px;
+  border-bottom:1px solid var(--border);
+}
+
+.context-label{
+  font-size:10px;font-weight:600;letter-spacing:1.5px;
+  text-transform:uppercase;color:var(--text3);margin-bottom:10px;
+}
+
+.context-grid{display:flex;flex-direction:column;gap:8px;}
+
+.ctx-input{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:11px;padding:10px 14px;
+  font-size:13px;color:var(--text);
+  font-family:'DM Sans',sans-serif;outline:none;
+  transition:border-color 0.2s;width:100%;
+}
+.ctx-input:focus{border-color:var(--gold);}
+.chat-accent .ctx-input:focus{border-color:var(--blue);}
+.ctx-input::placeholder{color:var(--text3);}
+
+.ctx-row{display:flex;gap:8px;}
+
+select.ctx-input{cursor:pointer;appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%235a5868'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 12px center;
+  padding-right:30px;
+}
+select.ctx-input option{background:#111116;}
+
+/* ===== CHAT AREA ===== */
+.chat-area{
+  flex:1;padding:16px 20px;
+  display:flex;flex-direction:column;gap:14px;
+  padding-bottom:100px;
+  min-height:300px;
+}
+
+.welcome-card{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:18px;padding:20px;text-align:center;
+}
+.welcome-card .wc-icon{font-size:36px;margin-bottom:12px;}
+.welcome-card h3{
+  font-family:'Cormorant Garamond',serif;
+  font-size:20px;font-weight:700;color:var(--white);margin-bottom:6px;
+}
+.welcome-card p{font-size:12px;color:var(--text2);line-height:1.7;font-weight:300;}
+
+.tips-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;margin-top:14px;}
+.tip-chip{
+  padding:5px 12px;border-radius:99px;font-size:11px;
+  background:var(--card2);border:1px solid var(--border2);
+  color:var(--text2);cursor:pointer;transition:all 0.2s;
+}
+.tip-chip:active{opacity:0.7;}
+.mail-accent .tip-chip:hover,.mail-accent .tip-chip:active{border-color:rgba(201,168,76,0.4);color:var(--gold);}
+.chat-accent .tip-chip:hover,.chat-accent .tip-chip:active{border-color:rgba(74,158,255,0.4);color:var(--blue);}
+
+/* MESSAGES */
+.msg{display:flex;gap:10px;align-items:flex-start;animation:msgIn 0.3s ease;}
+.msg.user{flex-direction:row-reverse;}
+
+@keyframes msgIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+
+.msg-avatar{
+  width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:12px;font-weight:700;flex-shrink:0;margin-top:2px;
+}
+.msg.ai .msg-avatar{background:var(--gold3);border:1px solid rgba(201,168,76,0.3);color:var(--gold);font-size:14px;}
+.chat-accent .msg.ai .msg-avatar{background:rgba(74,158,255,0.1);border-color:rgba(74,158,255,0.3);color:var(--blue);}
+.msg.user .msg-avatar{background:rgba(255,255,255,0.08);color:var(--text2);}
+
+.msg-content{flex:1;max-width:86%;}
+
+.msg-bubble{
+  padding:12px 15px;border-radius:16px;
+  font-size:13px;line-height:1.7;
+  font-weight:300;
+}
+.msg.ai .msg-bubble{
+  background:var(--card);border:1px solid var(--border2);
+  border-radius:4px 16px 16px 16px;color:var(--text);
+}
+.msg.user .msg-bubble{
+  background:var(--card2);border:1px solid var(--border2);
+  border-radius:16px 4px 16px 16px;color:var(--text2);
+  text-align:right;
+}
+
+.msg-actions{
+  display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;
+}
+
+.copy-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:8px;
+  background:var(--gold3);border:1px solid rgba(201,168,76,0.25);
+  color:var(--gold);font-size:11px;font-weight:600;
+  cursor:pointer;transition:all 0.2s;
+  font-family:'DM Sans',sans-serif;
+}
+.copy-btn:active{opacity:0.7;transform:scale(0.96);}
+.copy-btn.copied{background:rgba(46,204,113,0.12);border-color:rgba(46,204,113,0.3);color:var(--green);}
+
+.chat-accent .copy-btn{
+  background:rgba(74,158,255,0.1);border-color:rgba(74,158,255,0.25);color:var(--blue);
+}
+
+.refine-btn{
+  display:flex;align-items:center;gap:5px;
+  padding:5px 12px;border-radius:8px;
+  background:var(--card2);border:1px solid var(--border2);
+  color:var(--text2);font-size:11px;font-weight:500;
+  cursor:pointer;transition:all 0.2s;
+  font-family:'DM Sans',sans-serif;
+}
+.refine-btn:active{opacity:0.7;}
+
+/* THINKING */
+.thinking{display:flex;gap:5px;align-items:center;padding:6px 0;}
+.thinking span{
+  width:7px;height:7px;border-radius:50%;
+  background:var(--gold);opacity:0.4;
+  animation:td 1.2s infinite;
+}
+.chat-accent .thinking span{background:var(--blue);}
+.thinking span:nth-child(2){animation-delay:0.2s;}
+.thinking span:nth-child(3){animation-delay:0.4s;}
+@keyframes td{0%,80%,100%{transform:scale(0.6);opacity:0.3}40%{transform:scale(1);opacity:1}}
+
+/* ===== INPUT AREA ===== */
+.input-area{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:430px;
+  background:rgba(12,12,15,0.97);backdrop-filter:blur(24px);
+  border-top:1px solid var(--border);
+  padding:10px 16px 22px;z-index:100;
+}
+
+.input-row{display:flex;gap:8px;align-items:flex-end;}
+
+.msg-input{
+  flex:1;background:var(--card);
+  border:1px solid var(--border2);
+  border-radius:14px;padding:11px 14px;
+  font-size:13px;color:var(--text);
+  font-family:'DM Sans',sans-serif;outline:none;
+  resize:none;max-height:100px;line-height:1.5;
+  transition:border-color 0.2s;
+}
+.msg-input:focus{border-color:var(--gold);}
+.chat-accent .msg-input:focus{border-color:var(--blue);}
+.msg-input::placeholder{color:var(--text3);}
+
+.send-btn{
+  width:44px;height:44px;border-radius:13px;
+  border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  font-size:18px;flex-shrink:0;
+  transition:transform 0.15s,opacity 0.15s;
+}
+.mail-accent .send-btn{background:linear-gradient(135deg,#c9a84c,#e8c97a);}
+.chat-accent .send-btn{background:linear-gradient(135deg,#2563eb,#4a9eff);}
+.send-btn:active{transform:scale(0.88);}
+
+/* DIVIDER */
+.session-divider{
+  text-align:center;font-size:10px;
+  color:var(--text3);letter-spacing:1px;
+  text-transform:uppercase;padding:4px 0;
+  display:flex;align-items:center;gap:8px;
+}
+.session-divider::before,.session-divider::after{
+  content:'';flex:1;height:1px;background:var(--border);
+}
+
+/* NOTIF */
+.notif-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);width:90%;max-width:380px;z-index:9999;pointer-events:none;}
+.notif{
+  background:var(--card);border:1px solid rgba(201,168,76,0.3);
+  border-radius:14px;padding:11px 14px;
+  display:flex;align-items:center;gap:10px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.6);
+  transform:translateY(-80px);opacity:0;
+  transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
+  pointer-events:all;margin-bottom:8px;
+}
+.notif.show{transform:translateY(0);opacity:1;}
+.notif-t{font-size:12px;font-weight:600;color:var(--gold);margin-bottom:1px;}
+.notif-b{font-size:11px;color:var(--text3);}
+.notif-x{color:var(--text3);cursor:pointer;font-size:14px;margin-left:auto;}
+
+/* Scrollbar */
+::-webkit-scrollbar{width:3px;}
+::-webkit-scrollbar-track{background:transparent;}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px;}
+
+/* ===== API SETUP SCREEN ===== */
+#apiSetupScreen {
+  display: none;
+  position: fixed; inset: 0; z-index: 999;
+  background: var(--bg);
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 24px;
+  text-align: center;
+}
+.api-card {
+  background: var(--card);
+  border: 1px solid var(--border2);
+  border-radius: 24px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 380px;
+}
+.api-icon { font-size: 44px; margin-bottom: 16px; }
+.api-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 26px; font-weight: 700; color: var(--white);
+  margin-bottom: 8px;
+}
+.api-sub {
+  font-size: 12px; color: var(--text2);
+  line-height: 1.7; margin-bottom: 24px; font-weight: 300;
+}
+.api-input {
+  width: 100%;
+  background: var(--card2);
+  border: 1px solid var(--border2);
+  border-radius: 12px;
+  padding: 13px 16px;
+  font-size: 13px; color: var(--text);
+  font-family: 'DM Sans', sans-serif;
+  outline: none; margin-bottom: 10px;
+  transition: border-color 0.2s;
+  letter-spacing: 1px;
+}
+.api-input:focus { border-color: var(--gold); }
+.api-input::placeholder { color: var(--text3); letter-spacing: 0; }
+.api-btn {
+  width: 100%; padding: 14px;
+  background: linear-gradient(135deg, #c9a84c, #e8c97a);
+  border: none; border-radius: 12px;
+  color: #0c0c0f;
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-bottom: 12px;
+  transition: opacity 0.2s;
+}
+.api-btn:active { opacity: 0.8; }
+.api-error { font-size: 12px; color: #f87171; margin-bottom: 8px; min-height: 18px; }
+.api-steps {
+  background: var(--card2);
+  border-radius: 12px; padding: 14px;
+  text-align: left; margin-top: 4px;
+}
+.api-steps p {
+  font-size: 11px; color: var(--text2);
+  line-height: 1.8; font-weight: 300;
+}
+.api-steps strong { color: var(--gold); font-weight: 600; }
+.api-steps a { color: var(--gold); text-decoration: none; }
+
+</style>
+</head>
+<body>
+
+<div class="notif-wrap" id="nw"></div>
+
+<!-- ========== HOME ========== -->
+<div class="screen active" id="homeScreen">
+  <div class="home-hero">
+    <div class="brand-badge">AI Communication Suite</div>
+    <div class="home-title">Farid<span>AI</span></div>
+    <div class="home-sub">Write elite-level emails & messages.<br>Professional. Precise. Powerful.</div>
+  </div>
+
+  <div class="modules-wrap">
+    <div class="mod-card mail" onclick="openModule('mail')">
+      <div class="mod-card-icon">✉️</div>
+      <div class="mod-card-label">Module 01</div>
+      <div class="mod-card-title">Write Mail</div>
+      <div class="mod-card-desc">Craft professional, elite-style emails for any situation — formal, academic, business or personal.</div>
+      <div class="mod-card-arrow">→</div>
+    </div>
+
+    <div class="mod-card chat" onclick="openModule('chat')">
+      <div class="mod-card-icon">💬</div>
+      <div class="mod-card-label">Module 02</div>
+      <div class="mod-card-title">Write Chat</div>
+      <div class="mod-card-desc">Compose sharp, professional messages for WhatsApp, LinkedIn, SMS or any platform.</div>
+      <div class="mod-card-arrow">→</div>
+    </div>
+  </div>
+
+  <div class="home-footer">
+    No chat history saved · Fresh every session<br>
+    Copy & use anywhere instantly
+  </div>
+</div>
+
+<!-- ========== MAIL MODULE ========== -->
+<div class="screen mod-screen mail-accent" id="mailScreen">
+  <div class="mod-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="mod-header-info">
+      <h2>✉️ Write Mail</h2>
+      <p>Professional email composer</p>
+    </div>
+    <button class="new-btn" onclick="newSession('mail')">↺ New</button>
+    <button class="new-btn" onclick="resetApiKey()" style="margin-left:4px;">🔑</button>
+  </div>
+
+  <!-- Context -->
+  <div class="context-panel">
+    <div class="context-label">Email Context</div>
+    <div class="context-grid">
+      <div class="ctx-row">
+        <select class="ctx-input" id="mailTone">
+          <option value="formal">🎩 Formal</option>
+          <option value="professional">💼 Professional</option>
+          <option value="academic">🎓 Academic</option>
+          <option value="executive">👔 Executive</option>
+          <option value="friendly-pro">🤝 Friendly-Pro</option>
+          <option value="assertive">⚡ Assertive</option>
+        </select>
+        <select class="ctx-input" id="mailPurpose">
+          <option value="request">📋 Request</option>
+          <option value="followup">🔄 Follow-up</option>
+          <option value="complaint">⚠️ Complaint</option>
+          <option value="application">📄 Application</option>
+          <option value="introduction">👋 Introduction</option>
+          <option value="thankyou">🙏 Thank You</option>
+          <option value="proposal">💡 Proposal</option>
+          <option value="negotiation">🤝 Negotiation</option>
+        </select>
+      </div>
+      <input class="ctx-input" id="mailTo" placeholder="To: Professor, Manager, CEO, Client...">
+    </div>
+  </div>
+
+  <div class="chat-area" id="mailChat">
+    <div class="welcome-card">
+      <div class="wc-icon">✉️</div>
+      <h3>Elite Email Writer</h3>
+      <p>Tell me what email you need. Include the situation, who it's for, and what you want to achieve. I'll craft it perfectly.</p>
+      <div class="tips-row">
+        <div class="tip-chip" onclick="usePrompt('mail','Write an email requesting an extension for my assignment submission')">Assignment extension</div>
+        <div class="tip-chip" onclick="usePrompt('mail','Write an email to a professor requesting a research internship opportunity')">Internship request</div>
+        <div class="tip-chip" onclick="usePrompt('mail','Write a follow-up email after a job interview')">Interview follow-up</div>
+        <div class="tip-chip" onclick="usePrompt('mail','Write a professional complaint email about poor service')">Complaint email</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea class="msg-input" id="mailInput" placeholder="Describe the email you need..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('mail')}" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMsg('mail')">➤</button>
+    </div>
+  </div>
+</div>
+
+<!-- ========== CHAT MODULE ========== -->
+<div class="screen mod-screen chat-accent" id="chatScreen">
+  <div class="mod-header">
+    <button class="back-btn" onclick="goHome()">←</button>
+    <div class="mod-header-info">
+      <h2>💬 Write Chat</h2>
+      <p>Professional message composer</p>
+    </div>
+    <button class="new-btn" onclick="newSession('chat')">↺ New</button>
+    <button class="new-btn" onclick="resetApiKey()" style="margin-left:4px;">🔑</button>
+  </div>
+
+  <!-- Context -->
+  <div class="context-panel">
+    <div class="context-label">Message Context</div>
+    <div class="context-grid">
+      <div class="ctx-row">
+        <select class="ctx-input" id="chatTone">
+          <option value="professional">💼 Professional</option>
+          <option value="formal">🎩 Formal</option>
+          <option value="confident">⚡ Confident</option>
+          <option value="friendly">🤝 Friendly-Pro</option>
+          <option value="diplomatic">🕊️ Diplomatic</option>
+          <option value="assertive">🎯 Assertive</option>
+        </select>
+        <select class="ctx-input" id="chatPlatform">
+          <option value="whatsapp">💚 WhatsApp</option>
+          <option value="linkedin">🔵 LinkedIn</option>
+          <option value="sms">📱 SMS</option>
+          <option value="slack">🟣 Slack</option>
+          <option value="teams">🔷 MS Teams</option>
+          <option value="general">📨 General</option>
+        </select>
+      </div>
+      <input class="ctx-input" id="chatTo" placeholder="To: Professor, Boss, Client, Colleague...">
+    </div>
+  </div>
+
+  <div class="chat-area" id="chatChat">
+    <div class="welcome-card">
+      <div class="wc-icon">💬</div>
+      <h3>Elite Message Writer</h3>
+      <p>Describe your situation and I'll write the perfect professional message — concise, sharp, and impactful.</p>
+      <div class="tips-row">
+        <div class="tip-chip" onclick="usePrompt('chat','Message to a professor asking about exam schedule')">Ask professor</div>
+        <div class="tip-chip" onclick="usePrompt('chat','LinkedIn message to connect with a Product Manager')">LinkedIn outreach</div>
+        <div class="tip-chip" onclick="usePrompt('chat','WhatsApp message to follow up on a job application')">Job follow-up</div>
+        <div class="tip-chip" onclick="usePrompt('chat','Professional reply to decline a meeting politely')">Decline meeting</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="input-area">
+    <div class="input-row">
+      <textarea class="msg-input" id="chatInput" placeholder="Describe the message you need..." rows="1" onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg('chat')}" oninput="autoResize(this)"></textarea>
+      <button class="send-btn" onclick="sendMsg('chat')">➤</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== STATE =====
+let mailHistory = [];
+let chatHistory = [];
+
+// ===== NAVIGATION =====
+function showScreen(id) {
+  document.querySelectorAll('.screen').forEach(s => { s.classList.remove('active'); s.scrollTop = 0; });
+  document.getElementById(id).classList.add('active');
+}
+function goHome() { showScreen('homeScreen'); }
+function openModule(type) {
+  showScreen(type === 'mail' ? 'mailScreen' : 'chatScreen');
+}
+function newSession(type) {
+  if (type === 'mail') {
+    mailHistory = [];
+    document.getElementById('mailChat').innerHTML = getWelcome('mail');
+    showNotif('↺', 'New Session', 'Mail session cleared — fresh start', 'gold');
+  } else {
+    chatHistory = [];
+    document.getElementById('chatChat').innerHTML = getWelcome('chat');
+    showNotif('↺', 'New Session', 'Chat session cleared — fresh start', 'blue');
+  }
+}
+
+function getWelcome(type) {
+  if (type === 'mail') return `<div class="welcome-card">
+    <div class="wc-icon">✉️</div><h3>Elite Email Writer</h3>
+    <p>Tell me what email you need. Include the situation, who it's for, and what you want to achieve.</p>
+    <div class="tips-row">
+      <div class="tip-chip" onclick="usePrompt('mail','Write an email requesting an extension for my assignment submission')">Assignment extension</div>
+      <div class="tip-chip" onclick="usePrompt('mail','Write an email to a professor requesting a research internship opportunity')">Internship request</div>
+      <div class="tip-chip" onclick="usePrompt('mail','Write a follow-up email after a job interview')">Interview follow-up</div>
+    </div></div>`;
+  return `<div class="welcome-card">
+    <div class="wc-icon">💬</div><h3>Elite Message Writer</h3>
+    <p>Describe your situation and I'll write the perfect professional message — concise, sharp, and impactful.</p>
+    <div class="tips-row">
+      <div class="tip-chip" onclick="usePrompt('chat','Message to a professor asking about exam schedule')">Ask professor</div>
+      <div class="tip-chip" onclick="usePrompt('chat','LinkedIn message to connect with a Product Manager')">LinkedIn outreach</div>
+      <div class="tip-chip" onclick="usePrompt('chat','WhatsApp message to follow up on a job application')">Job follow-up</div>
+    </div></div>`;
+}
+
+function usePrompt(type, text) {
+  const inputId = type === 'mail' ? 'mailInput' : 'chatInput';
+  document.getElementById(inputId).value = text;
+  sendMsg(type);
+}
+
+// ===== API KEY SETUP =====
+function getApiKey() { return localStorage.getItem('faridai_or_key') || ''; }
+function saveApiKey(k) { localStorage.setItem('faridai_or_key', k); }
+
+function checkApiKey() {
+  if (!getApiKey()) {
+    document.getElementById('apiSetupScreen').style.display = 'flex';
+    return false;
+  }
+  return true;
+}
+
+function submitApiKey() {
+  const k = document.getElementById('apiKeyField').value.trim();
+  if (!k.startsWith('sk-or-')) {
+    document.getElementById('apiKeyError').textContent = '❌ Invalid key. Must start with sk-or-...';
+    return;
+  }
+  saveApiKey(k);
+  document.getElementById('apiSetupScreen').style.display = 'none';
+  showNotif('✅', 'API Key Saved!', 'FaridAI Writer is ready to use', 'gold');
+}
+
+function resetApiKey() {
+  localStorage.removeItem('faridai_or_key');
+  document.getElementById('apiKeyField').value = '';
+  document.getElementById('apiKeyError').textContent = '';
+  document.getElementById('apiSetupScreen').style.display = 'flex';
+}
+
+// ===== SEND MESSAGE =====
+async function sendMsg(type) {
+  if (!checkApiKey()) return;
+
+  const inputId = type === 'mail' ? 'mailInput' : 'chatInput';
+  const chatId  = type === 'mail' ? 'mailChat'  : 'chatChat';
+  const input   = document.getElementById(inputId);
+  const q       = input.value.trim();
+  if (!q) return;
+  input.value = ''; input.style.height = 'auto';
+
+  const history = type === 'mail' ? mailHistory : chatHistory;
+  const chatEl  = document.getElementById(chatId);
+
+  history.push({ role: 'user', content: q });
+  chatEl.innerHTML += `<div class="msg user"><div class="msg-content"><div class="msg-bubble">${q}</div></div><div class="msg-avatar">GF</div></div>`;
+
+  const thId = 'th-' + Date.now();
+  chatEl.innerHTML += `<div class="msg ai" id="${thId}"><div class="msg-avatar">${type==='mail'?'✉️':'💬'}</div><div class="msg-content"><div class="msg-bubble"><div class="thinking"><span></span><span></span><span></span></div><div style="font-size:10px;color:var(--text3);margin-top:4px;">Composing your ${type==='mail'?'email':'message'}...</div></div></div></div>`;
+  chatEl.scrollTop = chatEl.scrollHeight;
+
+  const tone     = document.getElementById(type==='mail' ? 'mailTone' : 'chatTone').value;
+  const purpose  = type==='mail' ? document.getElementById('mailPurpose').value : '';
+  const platform = type==='chat' ? document.getElementById('chatPlatform').value : '';
+  const toField  = document.getElementById(type==='mail' ? 'mailTo' : 'chatTo').value.trim();
+
+  const systemPrompt = type === 'mail'
+    ? `You are an elite professional email writer for Ghulam Farid — a Data Science student with ambitions in Product Management, MBA, COO, and PhD.
+Write ONLY the email — no explanations or commentary before or after.
+Rules:
+- Tone: ${tone} | Purpose: ${purpose}${toField ? ` | Recipient: ${toField}` : ''}
+- Use proper salutation, body paragraphs, and professional closing
+- Write with precision, authority, and elegance — never generic or templated
+- Include subject line at top as: Subject: [subject here]
+- Sign off as: Ghulam Farid
+- If asked to refine/shorten/lengthen/change tone — rewrite the full email`
+    : `You are an elite professional message writer for Ghulam Farid — a Data Science student with ambitions in Product Management, MBA, COO, and PhD.
+Write ONLY the message — no explanations or commentary before or after.
+Rules:
+- Tone: ${tone} | Platform: ${platform}${toField ? ` | Recipient: ${toField}` : ''}
+- Keep it concise, impactful, and platform-appropriate
+- WhatsApp/SMS: brief but professional | LinkedIn: polished, value-focused
+- Never robotic or templated — feel human and sharp
+- If asked to refine/adjust — rewrite accordingly`;
+
+  try {
+    const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getApiKey()}`,
+        'HTTP-Referer': 'https://gf1488360-cell.github.io/FaridAI/',
+        'X-Title': 'FaridAI Writer'
+      },
+      body: JSON.stringify({
+        model: 'google/gemini-2.0-flash-exp:free',
+        messages: [
+          { role: 'system', content: systemPrompt },
+          ...history.slice(-10)
+        ],
+        max_tokens: 1500,
+        temperature: 0.7
+      })
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err?.error?.message || `Error ${res.status}`);
+    }
+
+    const data  = await res.json();
+    const reply = data.choices?.[0]?.message?.content || 'Could not generate. Please try again.';
+    history.push({ role: 'assistant', content: reply });
+
+    document.getElementById(thId)?.remove();
+
+    const formatted = reply
+      .replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/\n\n/g, '<br><br>')
+      .replace(/\n/g, '<br>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+
+    const msgId = 'msg-' + Date.now();
+    chatEl.innerHTML += `
+      <div class="msg ai" id="${msgId}">
+        <div class="msg-avatar">${type==='mail'?'✉️':'💬'}</div>
+        <div class="msg-content">
+          <div class="msg-bubble">${formatted}</div>
+          <div class="msg-actions">
+            <button class="copy-btn" onclick="copyMsg('${msgId}', this)">📋 Copy</button>
+            <button class="refine-btn" onclick="refineMsg('${type}')">✏️ Refine</button>
+          </div>
+        </div>
+      </div>`;
+
+  } catch(e) {
+    console.error(e);
+    document.getElementById(thId)?.remove();
+    chatEl.innerHTML += `<div class="msg ai"><div class="msg-avatar">!</div><div class="msg-content"><div class="msg-bubble" style="color:#f87171;">❌ ${e.message || 'Network error'}. Check your API key or internet.</div></div></div>`;
+  }
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+// ===== COPY =====
+function copyMsg(msgId, btn) {
+  const el = document.getElementById(msgId);
+  if (!el) return;
+  const bubble = el.querySelector('.msg-bubble');
+  // Get plain text from bubble
+  const text = bubble.innerText || bubble.textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2500);
+  }).catch(() => {
+    // Fallback for older browsers
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    btn.textContent = '✅ Copied!';
+    btn.classList.add('copied');
+    setTimeout(() => { btn.textContent = '📋 Copy'; btn.classList.remove('copied'); }, 2500);
+  });
+}
+
+// ===== REFINE =====
+function refineMsg(type, msgId) {
+  const inputId = type === 'mail' ? 'mailInput' : 'chatInput';
+  const input = document.getElementById(inputId);
+  input.value = 'Refine this — ';
+  input.focus();
+  input.setSelectionRange(input.value.length, input.value.length);
+}
+
+// ===== INIT CHECK =====
+window.addEventListener('DOMContentLoaded', function() {
+  if (!getApiKey()) {
+    document.getElementById('apiSetupScreen').style.display = 'flex';
+  }
+});
+
+// ===== AUTO RESIZE =====
+function autoResize(el) {
+  el.style.height = 'auto';
+  el.style.height = Math.min(el.scrollHeight, 100) + 'px';
+}
+
+// ===== NOTIF =====
+function showNotif(icon, title, body, type = 'gold') {
+  const nw = document.getElementById('nw');
+  const id = 'n' + Date.now();
+  const d = document.createElement('div');
+  d.className = 'notif'; d.id = id;
+  const color = type === 'blue' ? 'rgba(74,158,255,0.3)' : 'rgba(201,168,76,0.3)';
+  d.style.borderColor = color;
+  d.innerHTML = `<div style="font-size:18px;">${icon}</div><div style="flex:1"><div class="notif-t" style="color:${type==='blue'?'var(--blue)':'var(--gold)'}">${title}</div><div class="notif-b">${body}</div></div><div class="notif-x" onclick="rmN('${id}')">✕</div>`;
+  nw.appendChild(d);
+  setTimeout(() => d.classList.add('show'), 10);
+  setTimeout(() => rmN(id), 4000);
+}
+function rmN(id) { const e = document.getElementById(id); if (!e) return; e.classList.remove('show'); setTimeout(() => e.remove(), 400); }
+</script>
+
+<!-- ===== API KEY SETUP SCREEN ===== -->
+<div id="apiSetupScreen">
+  <div class="api-card">
+    <div class="api-icon">🔑</div>
+    <div class="api-title">Connect FaridAI</div>
+    <div class="api-sub">Enter your free OpenRouter API key to start writing elite emails and messages. Stored only on your device — never shared.</div>
+    <input class="api-input" id="apiKeyField" type="password" placeholder="sk-or-v1-..." onkeydown="if(event.key==='Enter')submitApiKey()">
+    <div class="api-error" id="apiKeyError"></div>
+    <button class="api-btn" onclick="submitApiKey()">Activate FaridAI Writer</button>
+    <div class="api-steps">
+      <p>
+        <strong>Get your FREE key in 2 minutes:</strong><br>
+        1. Go to <a href="https://openrouter.ai" target="_blank">openrouter.ai</a><br>
+        2. Sign up free (no credit card needed)<br>
+        3. Go to <strong>API Keys → Create Key</strong><br>
+        4. Copy & paste it above ✅<br><br>
+        <strong>Free limits:</strong> 200 requests/day · 20/minute<br>
+        More than enough for daily use 🚀
+      </p>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
