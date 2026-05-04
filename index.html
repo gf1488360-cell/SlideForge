@@ -19,9 +19,12 @@
         .color-swatch.active { border-color: white; box-shadow: 0 0 0 2px #1e293b; transform: scale(1.05); }
         textarea, input, select { transition: all 0.15s; }
         textarea:focus, input:focus, select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+        .custom-scroll::-webkit-scrollbar { width: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
     </style>
 </head>
-<body class="antialiased">
+<body>
 
 <div id="root"></div>
 
@@ -45,7 +48,7 @@
     // ----- Helper: generate unique ID -----
     const uid = () => Date.now() + '-' + Math.random().toString(36).substring(2, 8);
 
-    // ----- Default demo slides (showing the power of SlideForge) -----
+    // ----- Default demo slides -----
     const getDefaultSlides = () => [
         { id: uid(), title: "Executive Summary", content: "- Digital transformation accelerates growth by 34%\n- Market shifts demand agile strategy\n- Our investment: $4.2M over 18 months" },
         { id: uid(), title: "Problem Statement", content: "- Legacy systems cause 22% downtime\n- Customer churn increased 15% YoY\n- Competitors outpace innovation" },
@@ -119,8 +122,8 @@
 
         const removeSlide = (id) => {
             if (slides.length === 1) {
-                if (confirm("At least one slide required. Add a new slide before deleting the last one.")) return;
-                else return;
+                alert("Cannot delete the last slide. Add another slide first.");
+                return;
             }
             setSlides(prev => prev.filter(s => s.id !== id));
         };
@@ -133,97 +136,102 @@
             setSlides(newSlides);
         };
 
-        // ----- PPTX GENERATION (downloadable) -----
+        // ----- ROBUST PPTX GENERATION (FIXED) -----
         const generatePPTX = async () => {
-            const PptxGenJS = window.PptxGenJS;
-            const pptx = new PptxGenJS();
-            // Set presentation properties
-            pptx.layout = 'LAYOUT_WIDE';
-            pptx.defineLayout({ name:'WIDE', width:10, height:5.625 }); // 16:9 aspect
-            pptx.layout = 'WIDE';
-            
-            const themeColors = COLOR_THEMES[colorTheme] || COLOR_THEMES[DEFAULT_THEME];
-            const primaryHex = themeColors.primary;
-            const secondaryHex = themeColors.secondary;
-            
-            // Helper to add a standard slide with title and bullet-friendly content
-            const addContentSlide = (slideTitle, slideContent) => {
-                const slide = pptx.addSlide();
-                // optional: set background color light grey
-                slide.background = { fill: "#F8FAFC" };
-                // Title with accent bar
-                slide.addText(slideTitle, {
-                    x: 0.5, y: 0.4, w: 9.0, h: 0.8,
-                    fontSize: 28, bold: true, color: primaryHex,
-                    fontFace: "Segoe UI", valign: "bottom"
-                });
-                // Add small accent line
-                slide.addShape(pptx.ShapeType.RECTANGLE, {
-                    x: 0.5, y: 1.2, w: 1.2, h: 0.08, fill: { color: secondaryHex }
-                });
+            try {
+                if (typeof window.PptxGenJS === 'undefined') {
+                    alert("PPTX library not loaded. Please refresh the page.");
+                    return;
+                }
+                const PptxGenJS = window.PptxGenJS;
+                const pptx = new PptxGenJS();
+                pptx.layout = 'LAYOUT_WIDE';
+                pptx.defineLayout({ name:'WIDE', width:10, height:5.625 });
+                pptx.layout = 'WIDE';
                 
-                // Parse content lines into bullet / normal paragraphs
-                const lines = slideContent.split(/\r?\n/).filter(l => l.trim().length > 0);
-                const paragraphs = [];
-                for (let line of lines) {
-                    let isBullet = false;
-                    let cleanLine = line;
-                    // Detect bullet starters: "- ", "• ", "* ", "· "
-                    if (/^[-•*·]\s/.test(line.trim())) {
-                        isBullet = true;
-                        cleanLine = line.replace(/^[-•*·]\s+/, '');
+                const themeColors = COLOR_THEMES[colorTheme] || COLOR_THEMES[DEFAULT_THEME];
+                const primaryHex = themeColors.primary;
+                const secondaryHex = themeColors.secondary;
+                
+                // Helper to convert text lines to bullet-aware textBody array
+                const parseContentToTextBody = (content) => {
+                    const lines = content.split(/\r?\n/).filter(l => l.trim().length > 0);
+                    const textBody = [];
+                    for (let line of lines) {
+                        let isBullet = false;
+                        let cleanLine = line;
+                        // Detect bullet starters: "- ", "• ", "* ", "· ", "➢ ", "→ "
+                        if (/^[-•*·➢→]\s+/.test(line.trim())) {
+                            isBullet = true;
+                            cleanLine = line.replace(/^[-•*·➢→]\s+/, '');
+                        }
+                        // Also support numbered lists? keep as plain if starts with number.
+                        textBody.push({
+                            text: cleanLine,
+                            options: { bullet: isBullet ? true : false, indentLevel: 0 }
+                        });
                     }
-                    // also support numbered? we treat as normal text but keep as is
-                    paragraphs.push({
-                        text: cleanLine,
-                        options: { bullet: isBullet, indentLevel: 0 }
+                    if (textBody.length === 0) {
+                        textBody.push({ text: "(No content provided)", options: { bullet: false } });
+                    }
+                    return textBody;
+                };
+                
+                // ---- Title slide ----
+                const titleSlide = pptx.addSlide();
+                titleSlide.background = { fill: "#FFFFFF" };
+                titleSlide.addText(presTitle || "Untitled Presentation", {
+                    x: 0.5, y: 1.8, w: 9, h: 1.2,
+                    fontSize: 36, bold: true, color: primaryHex, align: "center"
+                });
+                if (presSubtitle) {
+                    titleSlide.addText(presSubtitle, {
+                        x: 0.5, y: 3.1, w: 9, h: 0.6,
+                        fontSize: 18, italic: true, color: "#475569", align: "center"
                     });
                 }
-                if (paragraphs.length === 0) {
-                    slide.addText("(No content provided)", { x: 0.5, y: 1.6, w: 8.5, h: 3, fontSize: 14, color: "#64748B" });
-                } else {
-                    slide.addText(paragraphs, {
+                titleSlide.addText(`${author}  |  ${organization}  |  ${date}`, {
+                    x: 0.5, y: 4.2, w: 9, h: 0.5,
+                    fontSize: 12, color: "#64748B", align: "center"
+                });
+                titleSlide.addShape(pptx.ShapeType.RECTANGLE, { x: 4, y: 5, w: 2, h: 0.08, fill: { color: secondaryHex } });
+                
+                // ---- Content slides ----
+                for (let slide of slides) {
+                    const slideObj = pptx.addSlide();
+                    slideObj.background = { fill: "#F8FAFC" };
+                    // Title
+                    slideObj.addText(slide.title || "Untitled Slide", {
+                        x: 0.5, y: 0.4, w: 9.0, h: 0.8,
+                        fontSize: 28, bold: true, color: primaryHex,
+                        fontFace: "Segoe UI", valign: "bottom"
+                    });
+                    // Accent line
+                    slideObj.addShape(pptx.ShapeType.RECTANGLE, {
+                        x: 0.5, y: 1.2, w: 1.2, h: 0.08, fill: { color: secondaryHex }
+                    });
+                    const textBody = parseContentToTextBody(slide.content);
+                    slideObj.addText(textBody, {
                         x: 0.5, y: 1.5, w: 8.5, h: 3.5,
                         fontSize: 14, fontFace: "Segoe UI", color: "#334155",
-                        bullet: true, indent: 0.2
+                        bullet: true, indent: 0, lineSpacing: 20
+                    });
+                    // Footer
+                    slideObj.addText(`${presTitle || "SlideForge"} | ${author}`, {
+                        x: 0.5, y: 5.2, w: 9, h: 0.3, fontSize: 9, color: "#94A3B8", align: "center"
                     });
                 }
-                // Optional footer
-                slide.addText(`${presTitle || "SlideForge"} | ${author}`, { x: 0.5, y: 5.2, w: 9, h: 0.3, fontSize: 9, color: "#94A3B8", align: "center" });
-            };
-            
-            // ---- Title slide (presentation metadata) ----
-            const titleSlide = pptx.addSlide();
-            titleSlide.background = { fill: "#FFFFFF" };
-            // elegant central layout
-            titleSlide.addText(presTitle || "Untitled Presentation", {
-                x: 0.5, y: 1.8, w: 9, h: 1.2,
-                fontSize: 36, bold: true, color: primaryHex, align: "center"
-            });
-            if (presSubtitle) {
-                titleSlide.addText(presSubtitle, {
-                    x: 0.5, y: 3.1, w: 9, h: 0.6,
-                    fontSize: 18, italic: true, color: "#475569", align: "center"
-                });
+                
+                // Download
+                const safeTitle = presTitle.replace(/[^a-z0-9]/gi, '_').substring(0, 40) || "slideforge_deck";
+                await pptx.writeFile({ fileName: `${safeTitle}_SlideForge.pptx` });
+                alert("✅ Presentation downloaded successfully!");
+            } catch (error) {
+                console.error("PPTX Error:", error);
+                alert("Failed to generate PowerPoint: " + error.message);
             }
-            titleSlide.addText(`${author}  |  ${organization}  |  ${date}`, {
-                x: 0.5, y: 4.2, w: 9, h: 0.5,
-                fontSize: 12, color: "#64748B", align: "center"
-            });
-            // Add small logo-like line
-            titleSlide.addShape(pptx.ShapeType.RECTANGLE, { x: 4, y: 5, w: 2, h: 0.08, fill: { color: secondaryHex } });
-            
-            // ---- Content slides (each slide from state) ----
-            for (let slide of slides) {
-                addContentSlide(slide.title, slide.content);
-            }
-            
-            // ---- Download file ----
-            const safeTitle = presTitle.replace(/[^a-z0-9]/gi, '_').substring(0, 40) || "slideforge_deck";
-            await pptx.writeFile({ fileName: `${safeTitle}_SlideForge.pptx` });
         };
-
-        // Helper to reset all slides (optional)
+        
         const resetToDemo = () => {
             if (confirm("Reset all slides to demo content? Unsaved changes will be lost.")) {
                 setSlides(getDefaultSlides());
@@ -259,7 +267,7 @@
                         <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
                             <h2 className="text-lg font-bold flex items-center gap-2 mb-4"><i className="fas fa-info-circle text-indigo-500"></i> 1. Presentation Details</h2>
                             <div className="space-y-3">
-                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Presentation Title</label><input type="text" value={presTitle} onChange={e=>setPresTitle(e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm" placeholder="e.g. Digital Transformation Strategy"/></div>
+                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Presentation Title</label><input type="text" value={presTitle} onChange={e=>setPresTitle(e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm"/></div>
                                 <div><label className="block text-xs uppercase font-semibold text-gray-500">Subtitle / Tagline</label><input type="text" value={presSubtitle} onChange={e=>setPresSubtitle(e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm"/></div>
                                 <div className="grid grid-cols-2 gap-2"><div><label className="block text-xs uppercase font-semibold text-gray-500">Author</label><input type="text" value={author} onChange={e=>setAuthor(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div><div><label className="block text-xs uppercase font-semibold text-gray-500">Date</label><input type="text" value={date} onChange={e=>setDate(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div></div>
                                 <div><label className="block text-xs uppercase font-semibold text-gray-500">Organization / University</label><input type="text" value={organization} onChange={e=>setOrganization(e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm"/></div>
@@ -272,7 +280,7 @@
                             <div className="flex flex-wrap gap-3 items-center">
                                 {Object.keys(COLOR_THEMES).map(theme => (
                                     <div key={theme} className="flex flex-col items-center cursor-pointer" onClick={()=>setColorTheme(theme)}>
-                                        <div className="color-swatch" style={{ backgroundColor: COLOR_THEMES[theme].primary }}></div>
+                                        <div className={`color-swatch ${colorTheme === theme ? 'active' : ''}`} style={{ backgroundColor: COLOR_THEMES[theme].primary }}></div>
                                         <span className={`text-[11px] mt-1 font-medium ${colorTheme === theme ? 'text-indigo-700' : 'text-gray-500'}`}>{theme}</span>
                                     </div>
                                 ))}
@@ -285,7 +293,7 @@
                         </div>
                     </div>
                     
-                    {/* RIGHT PANEL: Slide Topics & Content (slide list manager) */}
+                    {/* RIGHT PANEL: Slide Topics & Content */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
                             <div className="flex flex-wrap justify-between items-center border-b pb-3 mb-4">
@@ -334,7 +342,7 @@
                             </div>
                         </div>
                         
-                        {/* Quick tip: McKinsey formatting */}
+                        {/* Quick tip */}
                         <div className="mt-4 bg-indigo-50/40 rounded-xl p-3 flex items-start gap-3 text-sm">
                             <i className="fas fa-chalkboard-teacher text-indigo-400 text-lg"></i>
                             <div><span className="font-semibold">Elite Tip:</span> Use dash `-` or bullet `•` at line start for automatic bullet points in PowerPoint. Headlines stay crisp with the chosen theme color.</div>
@@ -342,7 +350,6 @@
                     </div>
                 </div>
                 
-                {/* bottom bar: show current slide count */}
                 <div className="text-center text-gray-400 text-xs py-5 border-t border-gray-200 mt-6 bg-white/40">
                     <i className="fas fa-microphone-alt mr-1"></i> SlideForge • {slides.length} slide(s) ready • McKinsey‑grade structure • Export to .pptx
                 </div>
