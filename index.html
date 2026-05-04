@@ -3,264 +3,247 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SlideForge | McKinsey-Style Presentation Builder</title>
+    <title>SlideForge | Pitch‑Deck Studio</title>
     <!-- Tailwind + Font Awesome + Google Fonts -->
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- PPTXGenJS from Skypack (more reliable) -->
-    <script src="https://cdn.skypack.dev/pptxgenjs@3.12.0"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
+    <!-- PPTXGenJS from reliable CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" onload="window.pptxLoaded=true"></script>
     <style>
         * { font-family: 'Inter', sans-serif; }
-        body { background: #f1f4f9; }
-        .slide-card { transition: all 0.2s; }
-        .slide-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
-        .color-swatch { width: 32px; height: 32px; border-radius: 999px; cursor: pointer; transition: 0.1s; border: 2px solid transparent; }
-        .color-swatch.active { border-color: white; box-shadow: 0 0 0 2px #1e293b; transform: scale(1.05); }
-        textarea, input, select { transition: all 0.15s; }
-        textarea:focus, input:focus, select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
-        .custom-scroll::-webkit-scrollbar { width: 6px; }
-        .custom-scroll::-webkit-scrollbar-track { background: #e2e8f0; border-radius: 10px; }
-        .custom-scroll::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 10px; }
+        body { background: #f5f7fb; }
+        .slide-card { transition: all 0.2s; background: white; border-radius: 1rem; border: 1px solid #eef2f6; }
+        .slide-card:hover { transform: translateY(-3px); box-shadow: 0 20px 25px -12px rgba(0,0,0,0.1); }
+        .color-group { cursor: pointer; transition: 0.1s; border-radius: 1rem; padding: 0.5rem; border: 2px solid transparent; }
+        .color-group.active { border-color: #1e293b; background: #f8fafc; }
+        .color-swatch { width: 36px; height: 36px; border-radius: 12px; display: inline-block; margin-right: 6px; box-shadow: 0 1px 2px rgba(0,0,0,0.1); }
+        .loader { border: 3px solid #e2e8f0; border-top: 3px solid #4f46e5; border-radius: 50%; width: 40px; height: 40px; animation: spin 0.8s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        textarea:focus, input:focus { outline: none; border-color: #6366f1; box-shadow: 0 0 0 3px rgba(99,102,241,0.1); }
     </style>
 </head>
 <body>
+<div id="root"><div class="flex justify-center items-center h-screen"><div class="loader"></div><p class="ml-3 text-gray-500">Loading SlideForge Studio...</p></div></div>
 
-<div id="root"></div>
-
-<!-- React + ReactDOM + Babel -->
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
 
 <script type="text/babel">
-    // ----- THEME COLORS -----
-    const COLOR_THEMES = {
-        "Midnight": { primary: "#1E293B", secondary: "#3B82F6", accent: "#94A3B8" },
-        "Charcoal": { primary: "#2D2E32", secondary: "#8D99AE", accent: "#E5E7EB" },
-        "Ocean": { primary: "#0F4C5C", secondary: "#2C7A7B", accent: "#E2E8F0" },
-        "Forest": { primary: "#14532D", secondary: "#22C55E", accent: "#D1D5DB" },
-        "Cherry": { primary: "#9B2C2C", secondary: "#EF4444", accent: "#FEF2F2" },
-        "Teal": { primary: "#134E4A", secondary: "#14B8A6", accent: "#CCFBF1" }
+    // ----- 5 PROFESSIONAL COLOR GROUPS (each with 3 colors: primary, secondary, accent) -----
+    const COLOR_GROUPS = {
+        "Healthcare Blue": { primary: "#0F4C5C", secondary: "#2C7A7B", accent: "#E2E8F0", gradient: "from-teal-700 to-cyan-700" },
+        "Medical Nexus": { primary: "#1E3A5F", secondary: "#4A90E2", accent: "#F4F6F9", gradient: "from-blue-800 to-indigo-800" },
+        "Social Teal":    { primary: "#134E4A", secondary: "#14B8A6", accent: "#CCFBF1", gradient: "from-emerald-700 to-teal-700" },
+        "Corporate Navy": { primary: "#1E293B", secondary: "#3B82F6", accent: "#F1F5F9", gradient: "from-slate-800 to-slate-700" },
+        "Warm Orange":    { primary: "#9B2C2C", secondary: "#F97316", accent: "#FFF7ED", gradient: "from-orange-700 to-red-700" }
     };
-    const DEFAULT_THEME = "Midnight";
-    const uid = () => Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+    const DEFAULT_GROUP = "Healthcare Blue";
     
+    const uid = () => Date.now() + '-' + Math.random().toString(36).substring(2, 8);
     const getDefaultSlides = () => [
         { id: uid(), title: "Executive Summary", content: "- Digital transformation accelerates growth by 34%\n- Market shifts demand agile strategy\n- Our investment: $4.2M over 18 months" },
         { id: uid(), title: "Problem Statement", content: "- Legacy systems cause 22% downtime\n- Customer churn increased 15% YoY\n- Competitors outpace innovation" },
         { id: uid(), title: "Strategic Recommendations", content: "• Adopt cloud-native infrastructure\n• Launch AI-driven personalization\n• Restructure product teams to agile" },
         { id: uid(), title: "Implementation Roadmap", content: "Q1 2026: Foundation & pilots\nQ2 2026: Scale across regions\nQ3 2026: Full integration & KPI tracking" }
     ];
+    const STORAGE_KEY = "slideforge_pro_deck";
     
-    const STORAGE_KEY = "slideforge_presentation";
+    // Wait for PPTX library
+    function waitForPptx() { return new Promise((resolve) => { if(window.PptxGenJS) resolve(); else { const iv = setInterval(() => { if(window.PptxGenJS) { clearInterval(iv); resolve(); } }, 100); setTimeout(() => { clearInterval(iv); resolve(); }, 4000); } }); }
     
     const App = () => {
-        const [presTitle, setPresTitle] = React.useState("Digital Transformation Strategy 2025");
-        const [presSubtitle, setPresSubtitle] = React.useState("Roadmap for Operational Excellence");
+        const [presTitle, setPresTitle] = React.useState("Digital Transformation Strategy 2026");
+        const [presSubtitle, setPresSubtitle] = React.useState("Roadmap to Operational Excellence");
         const [author, setAuthor] = React.useState("Ghulam Farid");
         const [date, setDate] = React.useState(new Date().toLocaleDateString('en-US'));
-        const [organization, setOrganization] = React.useState("Strategy & Operations");
-        const [colorTheme, setColorTheme] = React.useState(DEFAULT_THEME);
+        const [organization, setOrganization] = React.useState("Strategy & Ops");
+        const [colorGroup, setColorGroup] = React.useState(DEFAULT_GROUP);
         const [slides, setSlides] = React.useState(() => {
             const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    const parsed = JSON.parse(saved);
-                    if (parsed.slides?.length) return parsed.slides;
-                } catch(e) {}
-            }
+            if(saved) try { const p = JSON.parse(saved); if(p.slides?.length) return p.slides; } catch(e) {}
             return getDefaultSlides();
         });
         const [pptReady, setPptReady] = React.useState(false);
         
-        // Check if PPTXGenJS is loaded
-        React.useEffect(() => {
-            const checkLib = () => {
-                if (window.PptxGenJS) {
-                    setPptReady(true);
-                } else {
-                    setTimeout(checkLib, 200);
-                }
-            };
-            checkLib();
-        }, []);
+        React.useEffect(() => { waitForPptx().then(() => setPptReady(true)); }, []);
+        React.useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify({ presTitle, presSubtitle, author, date, organization, colorGroup, slides })); }, [presTitle, presSubtitle, author, date, organization, colorGroup, slides]);
+        React.useEffect(() => { const saved = localStorage.getItem(STORAGE_KEY); if(saved) try { const d=JSON.parse(saved); if(d.presTitle) setPresTitle(d.presTitle); if(d.presSubtitle) setPresSubtitle(d.presSubtitle); if(d.author) setAuthor(d.author); if(d.date) setDate(d.date); if(d.organization) setOrganization(d.organization); if(d.colorGroup && COLOR_GROUPS[d.colorGroup]) setColorGroup(d.colorGroup); if(d.slides?.length) setSlides(d.slides); } catch(e){} }, []);
         
-        React.useEffect(() => {
-            localStorage.setItem(STORAGE_KEY, JSON.stringify({ presTitle, presSubtitle, author, date, organization, colorTheme, slides }));
-        }, [presTitle, presSubtitle, author, date, organization, colorTheme, slides]);
+        const addSlide = () => setSlides(prev => [...prev, { id: uid(), title: "New Slide", content: "• Add key points\n• Use dash or bullet" }]);
+        const updateSlide = (id, field, val) => setSlides(prev => prev.map(s => s.id === id ? {...s, [field]: val} : s));
+        const removeSlide = (id) => { if(slides.length > 1) setSlides(prev => prev.filter(s => s.id !== id)); else alert("Keep at least one slide"); };
+        const moveSlide = (idx, dir) => { if((dir==='up' && idx===0) || (dir==='down' && idx===slides.length-1)) return; const newS = [...slides]; const swap = dir==='up' ? idx-1 : idx+1; [newS[idx], newS[swap]] = [newS[swap], newS[idx]]; setSlides(newS); };
+        const resetDemo = () => { if(confirm("Reset to demo deck?")) setSlides(getDefaultSlides()); };
         
-        React.useEffect(() => {
-            const saved = localStorage.getItem(STORAGE_KEY);
-            if (saved) {
-                try {
-                    const data = JSON.parse(saved);
-                    if (data.presTitle) setPresTitle(data.presTitle);
-                    if (data.presSubtitle) setPresSubtitle(data.presSubtitle);
-                    if (data.author) setAuthor(data.author);
-                    if (data.date) setDate(data.date);
-                    if (data.organization) setOrganization(data.organization);
-                    if (data.colorTheme && COLOR_THEMES[data.colorTheme]) setColorTheme(data.colorTheme);
-                    if (data.slides?.length) setSlides(data.slides);
-                } catch(e) {}
-            }
-        }, []);
-        
-        const addSlide = () => setSlides(prev => [...prev, { id: uid(), title: "New Slide Topic", content: "• Add your key points here\n• Use dash or bullet list" }]);
-        const updateSlide = (id, field, value) => setSlides(prev => prev.map(s => s.id === id ? { ...s, [field]: value } : s));
-        const removeSlide = (id) => { if (slides.length > 1) setSlides(prev => prev.filter(s => s.id !== id)); else alert("Keep at least one slide."); };
-        const moveSlide = (idx, dir) => {
-            if ((dir === 'up' && idx === 0) || (dir === 'down' && idx === slides.length-1)) return;
-            const newSlides = [...slides];
-            const swap = dir === 'up' ? idx-1 : idx+1;
-            [newSlides[idx], newSlides[swap]] = [newSlides[swap], newSlides[idx]];
-            setSlides(newSlides);
-        };
-        const resetToDemo = () => { if(confirm("Reset to demo?")) setSlides(getDefaultSlides()); };
-        const clearAllSlides = () => { if(slides.length <= 1) return; if(confirm("Keep only first slide?")) setSlides([slides[0]]); };
-        
-        // ---- ROBUST PPTX GENERATION with library check ----
+        // ---- FIXED PPTX GENERATION (no shape errors, uses reliable empty text rectangles) ----
         const generatePPTX = async () => {
-            if (!pptReady) {
-                alert("PPTX library is still loading. Please wait a moment and try again.");
-                return;
-            }
+            if(!pptReady) { alert("Library still loading, please wait 2 seconds"); return; }
             try {
                 const PptxGenJS = window.PptxGenJS;
                 const pptx = new PptxGenJS();
                 pptx.layout = 'LAYOUT_WIDE';
                 pptx.defineLayout({ name:'WIDE', width:10, height:5.625 });
                 pptx.layout = 'WIDE';
+                const colors = COLOR_GROUPS[colorGroup];
+                const primary = colors.primary;
+                const secondary = colors.secondary;
                 
-                const theme = COLOR_THEMES[colorTheme] || COLOR_THEMES[DEFAULT_THEME];
-                const primary = theme.primary;
-                const secondary = theme.secondary;
-                
-                // Helper: convert text to bullet-friendly array
-                const makeTextBody = (rawText) => {
-                    const lines = rawText.split(/\r?\n/).filter(l => l.trim().length > 0);
-                    if (lines.length === 0) return [{ text: "(No content)", options: { bullet: false } }];
+                // Helper: convert text to bullet‑aware textBody array
+                const makeTextBody = (raw) => {
+                    const lines = raw.split(/\r?\n/).filter(l=>l.trim().length);
+                    if(!lines.length) return [{text:"(No content)", options:{bullet:false}}];
                     return lines.map(line => {
-                        let isBullet = false;
-                        let clean = line;
-                        if (/^[-•*·➢→]\s+/.test(line.trim())) {
-                            isBullet = true;
-                            clean = line.replace(/^[-•*·➢→]\s+/, '');
-                        }
+                        let isBullet = /^[-•*·➢→]\s+/.test(line.trim());
+                        let clean = isBullet ? line.replace(/^[-•*·➢→]\s+/, '') : line;
                         return { text: clean, options: { bullet: isBullet, indentLevel: 0 } };
                     });
                 };
                 
-                // ---- TITLE SLIDE ----
+                // ---- TITLE SLIDE (with top accent bar using text rectangle) ----
                 const titleSlide = pptx.addSlide();
-                titleSlide.addText(presTitle, { x: 0.5, y: 1.8, w: 9, h: 1.2, fontSize: 36, bold: true, color: primary, align: "center" });
-                if (presSubtitle) titleSlide.addText(presSubtitle, { x: 0.5, y: 3.1, w: 9, h: 0.6, fontSize: 18, italic: true, color: "#475569", align: "center" });
-                titleSlide.addText(`${author} | ${organization} | ${date}`, { x: 0.5, y: 4.2, w: 9, h: 0.5, fontSize: 12, color: "#64748B", align: "center" });
-                titleSlide.addText("", { x: 4, y: 5, w: 2, h: 0.08, fill: { color: secondary } });
+                titleSlide.background = { fill: "#FFFFFF" };
+                // Top accent bar (empty text with fill)
+                titleSlide.addText("", { x: 0, y: 0, w: 10, h: 0.12, fill: { color: primary } });
+                titleSlide.addText(presTitle, { x: 0.5, y: 1.6, w: 9, h: 1.2, fontSize: 38, bold: true, color: primary, align: "center" });
+                if(presSubtitle) titleSlide.addText(presSubtitle, { x: 0.5, y: 3.0, w: 9, h: 0.6, fontSize: 18, italic: true, color: "#4B5563", align: "center" });
+                titleSlide.addText(`${author}  |  ${organization}  |  ${date}`, { x: 0.5, y: 4.2, w: 9, h: 0.5, fontSize: 12, color: "#6B7280", align: "center" });
+                // Accent line under title (rectangle via empty text)
+                titleSlide.addText("", { x: 4, y: 4.8, w: 2, h: 0.1, fill: { color: secondary } });
                 
                 // ---- CONTENT SLIDES ----
-                for (let slide of slides) {
+                for(let slide of slides) {
                     const s = pptx.addSlide();
-                    s.addText(slide.title || "Untitled", { x: 0.5, y: 0.4, w: 9, h: 0.8, fontSize: 28, bold: true, color: primary });
-                    s.addText("", { x: 0.5, y: 1.2, w: 1.2, h: 0.08, fill: { color: secondary } });
+                    s.background = { fill: "#FFFFFF" };
+                    // Header accent bar (top)
+                    s.addText("", { x: 0, y: 0, w: 10, h: 0.08, fill: { color: primary } });
+                    // Slide title
+                    s.addText(slide.title || "Untitled", { x: 0.5, y: 0.5, w: 8.5, h: 0.7, fontSize: 28, bold: true, color: primary });
+                    // Title underline accent
+                    s.addText("", { x: 0.5, y: 1.25, w: 1.2, h: 0.07, fill: { color: secondary } });
+                    // Bullet content
                     const textBody = makeTextBody(slide.content);
-                    s.addText(textBody, { x: 0.5, y: 1.5, w: 8.5, h: 3.5, fontSize: 14, color: "#334155", bullet: true, lineSpacing: 20 });
-                    s.addText(`${presTitle} | ${author}`, { x: 0.5, y: 5.2, w: 9, h: 0.3, fontSize: 9, color: "#94A3B8", align: "center" });
+                    s.addText(textBody, { x: 0.5, y: 1.6, w: 8.5, h: 3.2, fontSize: 14, color: "#374151", bullet: true, lineSpacing: 24 });
+                    // Footer
+                    s.addText(`${presTitle} | ${author}`, { x: 0.5, y: 5.2, w: 9, h: 0.3, fontSize: 9, color: "#9CA3AF", align: "center" });
+                    // Corner accent (optional)
+                    s.addText("", { x: 9.2, y: 5.3, w: 0.4, h: 0.15, fill: { color: secondary } });
                 }
                 
-                const fileName = `${presTitle.replace(/[^a-z0-9]/gi, '_').slice(0, 40)}_SlideForge.pptx`;
+                const fileName = `${presTitle.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_SlideForge.pptx`;
                 await pptx.writeFile({ fileName });
-                alert("✅ Presentation downloaded successfully!");
-            } catch (err) {
+                alert("✅ Professional deck exported successfully!");
+            } catch(err) { 
                 console.error(err);
-                alert("Export error: " + err.message);
+                alert("Export error: " + err.message); 
             }
         };
         
+        if(!pptReady) return <div className="flex justify-center items-center h-screen"><div className="loader"></div><p className="ml-3 text-gray-600">Loading presentation engine...</p></div>;
+        
+        const currentColors = COLOR_GROUPS[colorGroup];
+        
         return (
-            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
-                <div className="bg-white shadow-sm border-b sticky top-0 z-20">
-                    <div className="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-3">
+            <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
+                {/* Header */}
+                <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
+                    <div className="max-w-7xl mx-auto px-5 py-4 flex flex-wrap justify-between items-center gap-3">
                         <div className="flex items-center gap-3">
-                            <i className="fas fa-chart-line text-indigo-600 text-2xl"></i>
-                            <h1 className="text-2xl font-bold">SlideForge <span className="text-sm font-normal text-gray-400">McKinsey-Style · Elite Standards</span></h1>
+                            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-800 flex items-center justify-center"><i className="fas fa-chart-simple text-white text-sm"></i></div>
+                            <h1 className="text-2xl font-bold tracking-tight">SlideForge <span className="text-sm font-normal text-gray-500">Pitch‑Deck Studio</span></h1>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={generatePPTX} disabled={!pptReady} className={`px-5 py-2 rounded-xl shadow-md flex items-center gap-2 transition ${pptReady ? 'bg-indigo-700 text-white hover:bg-indigo-800' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
-                                <i className="fas fa-download"></i> {pptReady ? "Download PPTX" : "Loading Library..."}
-                            </button>
-                            <button onClick={resetToDemo} className="border border-gray-300 bg-white px-4 py-2 rounded-xl"><i className="fas fa-sync-alt"></i> Demo Slides</button>
+                            <button onClick={generatePPTX} className="bg-indigo-700 hover:bg-indigo-800 text-white px-5 py-2 rounded-xl shadow-md flex items-center gap-2 transition text-sm font-semibold"><i className="fas fa-download"></i> Export PowerPoint</button>
+                            <button onClick={resetDemo} className="border border-gray-300 bg-white px-4 py-2 rounded-xl hover:bg-gray-50 text-sm"><i className="fas fa-sync-alt"></i> Demo Deck</button>
                         </div>
                     </div>
                 </div>
                 
-                <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-                    <div className="lg:col-span-1 space-y-5">
-                        <div className="bg-white rounded-2xl shadow-md p-5">
-                            <h2 className="text-lg font-bold flex items-center gap-2 mb-4"><i className="fas fa-info-circle text-indigo-500"></i> 1. Presentation Details</h2>
+                <div className="max-w-7xl mx-auto px-5 py-6 grid grid-cols-1 lg:grid-cols-3 gap-7">
+                    {/* LEFT: Details & Color Groups */}
+                    <div className="space-y-6">
+                        <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
+                            <h2 className="text-md font-bold flex items-center gap-2 mb-4"><i className="fas fa-sliders-h text-indigo-500"></i> Presentation Identity</h2>
                             <div className="space-y-3">
-                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Title</label><input type="text" value={presTitle} onChange={e=>setPresTitle(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div>
-                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Subtitle</label><input type="text" value={presSubtitle} onChange={e=>setPresSubtitle(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div>
-                                <div className="grid grid-cols-2 gap-2"><div><label>Author</label><input type="text" value={author} onChange={e=>setAuthor(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div><div><label>Date</label><input type="text" value={date} onChange={e=>setDate(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div></div>
-                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Organization</label><input type="text" value={organization} onChange={e=>setOrganization(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div>
+                                <input type="text" value={presTitle} onChange={e=>setPresTitle(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm" placeholder="Title"/>
+                                <input type="text" value={presSubtitle} onChange={e=>setPresSubtitle(e.target.value)} className="w-full border border-gray-200 rounded-xl p-2.5 text-sm" placeholder="Subtitle"/>
+                                <div className="grid grid-cols-2 gap-2"><input type="text" value={author} onChange={e=>setAuthor(e.target.value)} placeholder="Author" className="border rounded-xl p-2 text-sm"/><input type="text" value={date} onChange={e=>setDate(e.target.value)} placeholder="Date" className="border rounded-xl p-2 text-sm"/></div>
+                                <input type="text" value={organization} onChange={e=>setOrganization(e.target.value)} placeholder="Org / University" className="w-full border rounded-xl p-2 text-sm"/>
                             </div>
                         </div>
+                        
                         <div className="bg-white rounded-2xl shadow-md p-5">
-                            <h2 className="text-lg font-bold flex gap-2"><i className="fas fa-palette text-indigo-500"></i> 4. Color Theme</h2>
-                            <div className="flex flex-wrap gap-3 mt-3">
-                                {Object.keys(COLOR_THEMES).map(t => (
-                                    <div key={t} className="flex flex-col items-center cursor-pointer" onClick={()=>setColorTheme(t)}>
-                                        <div className={`color-swatch ${colorTheme===t?'active':''}`} style={{ backgroundColor: COLOR_THEMES[t].primary }}></div>
-                                        <span className={`text-[11px] ${colorTheme===t?'text-indigo-700':'text-gray-500'}`}>{t}</span>
+                            <h2 className="text-md font-bold flex items-center gap-2 mb-3"><i className="fas fa-palette text-indigo-500"></i> Premium Color Groups</h2>
+                            <div className="grid grid-cols-1 gap-2">
+                                {Object.keys(COLOR_GROUPS).map(group => (
+                                    <div key={group} onClick={()=>setColorGroup(group)} className={`color-group flex items-center justify-between p-2 ${colorGroup === group ? 'active border-indigo-200 bg-indigo-50' : 'border-transparent'}`}>
+                                        <div className="flex items-center gap-2">
+                                            <div className="flex">
+                                                <div className="color-swatch" style={{ backgroundColor: COLOR_GROUPS[group].primary }}></div>
+                                                <div className="color-swatch" style={{ backgroundColor: COLOR_GROUPS[group].secondary }}></div>
+                                                <div className="color-swatch" style={{ backgroundColor: COLOR_GROUPS[group].accent }}></div>
+                                            </div>
+                                            <span className="text-sm font-medium">{group}</span>
+                                        </div>
+                                        {colorGroup === group && <i className="fas fa-check-circle text-indigo-600"></i>}
                                     </div>
                                 ))}
                             </div>
+                            <div className="mt-3 text-xs text-gray-400 flex items-center gap-1"><i className="fas fa-magic"></i> Colors applied to titles, accents & exported slides</div>
                         </div>
-                        <div className="bg-white/60 rounded-xl p-4 text-center text-sm text-gray-500"><i className="fas fa-magic mr-1"></i> Auto-saved to browser</div>
+                        
+                        {/* Live preview mini slide */}
+                        <div className="bg-white rounded-2xl shadow-sm p-4 border-l-4" style={{ borderLeftColor: currentColors.primary }}>
+                            <p className="text-xs uppercase font-bold text-gray-400 mb-1">live preview</p>
+                            <div className="flex items-center gap-2">
+                                <i className="fas fa-chalkboard-user text-indigo-400"></i>
+                                <span className="font-medium text-sm" style={{ color: currentColors.primary }}>{presTitle || "Title"}</span>
+                            </div>
+                            <p className="text-xs text-gray-500 mt-1">{slides.length} slides · {colorGroup} theme</p>
+                        </div>
                     </div>
                     
+                    {/* RIGHT: Slide Editor */}
                     <div className="lg:col-span-2">
-                        <div className="bg-white rounded-2xl shadow-md p-5">
+                        <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
                             <div className="flex justify-between items-center border-b pb-3 mb-4">
-                                <h2 className="text-lg font-bold"><i className="fas fa-layer-group text-indigo-500"></i> 2. Slide Topics & Content</h2>
-                                <div className="flex gap-2">
-                                    <button onClick={addSlide} className="bg-indigo-50 text-indigo-700 px-4 py-1 rounded-full text-sm"><i className="fas fa-plus"></i> Add Slide</button>
-                                    <button onClick={clearAllSlides} className="text-gray-500 hover:text-red-500 text-sm px-3 py-1 rounded-full border"><i className="fas fa-trash-alt"></i> Clean</button>
-                                </div>
+                                <h2 className="text-lg font-bold flex items-center gap-2"><i className="fas fa-layer-group text-indigo-500"></i> Slide Studio</h2>
+                                <button onClick={addSlide} className="bg-indigo-50 text-indigo-700 text-sm px-4 py-1.5 rounded-full flex items-center gap-1 hover:bg-indigo-100"><i className="fas fa-plus"></i> New Slide</button>
                             </div>
-                            <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-2 custom-scroll">
+                            <div className="space-y-5 max-h-[65vh] overflow-y-auto pr-2 custom-scroll">
                                 {slides.map((slide, idx) => (
-                                    <div key={slide.id} className="bg-gray-50 rounded-xl border p-4">
-                                        <div className="flex justify-between items-start gap-2 mb-2">
-                                            <div className="flex items-center gap-2 flex-1">
-                                                <span className="text-xs font-bold bg-gray-200 rounded-full w-6 h-6 flex items-center justify-center">{idx+1}</span>
-                                                <input type="text" value={slide.title} onChange={e=>updateSlide(slide.id,'title',e.target.value)} className="font-semibold bg-transparent border-b border-transparent focus:border-indigo-300 w-full" placeholder="Slide title"/>
+                                    <div key={slide.id} className="slide-card p-4">
+                                        <div className="flex justify-between items-start mb-2">
+                                            <div className="flex items-center gap-3 flex-1">
+                                                <span className="text-xs font-bold bg-gray-100 text-gray-700 rounded-full w-6 h-6 flex items-center justify-center">{idx+1}</span>
+                                                <input type="text" value={slide.title} onChange={e=>updateSlide(slide.id,'title',e.target.value)} className="font-bold text-gray-800 bg-transparent border-b border-transparent focus:border-indigo-300 w-full text-md" placeholder="Slide title"/>
                                             </div>
                                             <div className="flex gap-1">
-                                                <button onClick={()=>moveSlide(idx,'up')} disabled={idx===0} className={`p-1 ${idx===0?'text-gray-300':'hover:bg-gray-200'}`}><i className="fas fa-chevron-up"></i></button>
-                                                <button onClick={()=>moveSlide(idx,'down')} disabled={idx===slides.length-1} className={`p-1 ${idx===slides.length-1?'text-gray-300':'hover:bg-gray-200'}`}><i className="fas fa-chevron-down"></i></button>
-                                                <button onClick={()=>removeSlide(slide.id)} className="p-1 text-red-400 hover:text-red-600"><i className="fas fa-times"></i></button>
+                                                <button onClick={()=>moveSlide(idx,'up')} disabled={idx===0} className="p-1.5 rounded text-gray-400 hover:text-gray-600 disabled:opacity-30"><i className="fas fa-chevron-up text-xs"></i></button>
+                                                <button onClick={()=>moveSlide(idx,'down')} disabled={idx===slides.length-1} className="p-1.5 rounded text-gray-400 hover:text-gray-600"><i className="fas fa-chevron-down text-xs"></i></button>
+                                                <button onClick={()=>removeSlide(slide.id)} className="p-1.5 rounded text-red-300 hover:text-red-500"><i className="fas fa-trash-alt text-xs"></i></button>
                                             </div>
                                         </div>
-                                        <textarea rows={4} value={slide.content} onChange={e=>updateSlide(slide.id,'content',e.target.value)} className="w-full border rounded-lg p-2 text-sm font-mono" placeholder="• Bullet points using dash or asterisk&#10;- Point one&#10;• Second point"></textarea>
-                                        <div className="text-right text-[11px] text-gray-400 mt-1"><i className="far fa-comment-dots"></i> Bullets: - or •</div>
+                                        <textarea rows={3} value={slide.content} onChange={e=>updateSlide(slide.id,'content',e.target.value)} className="w-full border border-gray-200 rounded-xl p-3 text-sm font-mono bg-gray-50 focus:bg-white" placeholder="• Bullet points using dash&#10;- First point&#10;• Second point"></textarea>
+                                        <div className="text-right text-[11px] text-gray-400 mt-1"><i className="far fa-comment-dots"></i> Use - or • for automatic bullets in PPTX</div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-4 text-center text-xs text-gray-400 border-t pt-3"><i className="fas fa-save"></i> Auto-saved • {slides.length} slide(s)</div>
+                            <div className="mt-4 text-center text-xs text-gray-400 border-t pt-3">✅ Auto‑saved locally · {slides.length} slides · Export includes your color theme</div>
                         </div>
-                        <div className="mt-4 bg-indigo-50/40 rounded-xl p-3 text-sm flex gap-2"><i className="fas fa-chalkboard-teacher text-indigo-400"></i> Use dash `-` or bullet `•` at start of line for automatic bullet points in PowerPoint.</div>
+                        <div className="mt-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-3 flex gap-2 text-sm border border-indigo-100">
+                            <i className="fas fa-gem text-indigo-500 mt-0.5"></i>
+                            <span><strong className="font-semibold">Elite tip:</strong> Each slide exports with a professional header, accent bar, and your chosen 3‑color harmony — ready for investors.</span>
+                        </div>
                     </div>
                 </div>
-                <div className="text-center text-gray-400 text-xs py-5 border-t mt-6 bg-white/40">SlideForge • Elite presentations • Export to .pptx</div>
+                <div className="text-center text-gray-400 text-xs py-5 border-t mt-8 bg-white/50">SlideForge · Pitch‑ready presentations · McKinsey‑grade styling · Download and impress</div>
             </div>
         );
     };
     
-    // Wait for DOM and library before rendering
-    window.addEventListener('load', () => {
-        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
-    });
+    window.addEventListener('load', () => { ReactDOM.createRoot(document.getElementById("root")).render(<App />); });
 </script>
 </body>
 </html>
