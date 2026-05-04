@@ -3,13 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-    <title>SlideForge | Pitch‑Deck Studio</title>
-    <!-- Tailwind + Font Awesome + Google Fonts -->
+    <title>SlideForge | Professional Pitch‑Deck Builder</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700;14..32,800&display=swap" rel="stylesheet">
-    <!-- PPTXGenJS from reliable CDN -->
-    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js" onload="window.pptxLoaded=true"></script>
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #f5f7fb; }
@@ -31,13 +29,15 @@
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
 
 <script type="text/babel">
-    // ----- 5 PROFESSIONAL COLOR GROUPS (each with 3 colors: primary, secondary, accent) -----
+    // --------------------------------------------------------------
+    // 5 PROFESSIONAL COLOR GROUPS
+    // --------------------------------------------------------------
     const COLOR_GROUPS = {
-        "Healthcare Blue": { primary: "#0F4C5C", secondary: "#2C7A7B", accent: "#E2E8F0", gradient: "from-teal-700 to-cyan-700" },
-        "Medical Nexus": { primary: "#1E3A5F", secondary: "#4A90E2", accent: "#F4F6F9", gradient: "from-blue-800 to-indigo-800" },
-        "Social Teal":    { primary: "#134E4A", secondary: "#14B8A6", accent: "#CCFBF1", gradient: "from-emerald-700 to-teal-700" },
-        "Corporate Navy": { primary: "#1E293B", secondary: "#3B82F6", accent: "#F1F5F9", gradient: "from-slate-800 to-slate-700" },
-        "Warm Orange":    { primary: "#9B2C2C", secondary: "#F97316", accent: "#FFF7ED", gradient: "from-orange-700 to-red-700" }
+        "Healthcare Blue": { primary: "#0F4C5C", secondary: "#2C7A7B", accent: "#D9EAED", bgLight: "#F4F9FA" },
+        "Medical Nexus":   { primary: "#1E3A5F", secondary: "#4A90E2", accent: "#E6F0FA", bgLight: "#F8FBFE" },
+        "Social Teal":     { primary: "#134E4A", secondary: "#14B8A6", accent: "#D1FCF0", bgLight: "#F9FFFE" },
+        "Corporate Navy":  { primary: "#1E293B", secondary: "#3B82F6", accent: "#EFF6FF", bgLight: "#F8FAFE" },
+        "Warm Orange":     { primary: "#9B2C2C", secondary: "#F97316", accent: "#FFF4ED", bgLight: "#FFFBF9" }
     };
     const DEFAULT_GROUP = "Healthcare Blue";
     
@@ -48,10 +48,19 @@
         { id: uid(), title: "Strategic Recommendations", content: "• Adopt cloud-native infrastructure\n• Launch AI-driven personalization\n• Restructure product teams to agile" },
         { id: uid(), title: "Implementation Roadmap", content: "Q1 2026: Foundation & pilots\nQ2 2026: Scale across regions\nQ3 2026: Full integration & KPI tracking" }
     ];
-    const STORAGE_KEY = "slideforge_pro_deck";
+    const STORAGE_KEY = "slideforge_designer_deck";
     
-    // Wait for PPTX library
-    function waitForPptx() { return new Promise((resolve) => { if(window.PptxGenJS) resolve(); else { const iv = setInterval(() => { if(window.PptxGenJS) { clearInterval(iv); resolve(); } }, 100); setTimeout(() => { clearInterval(iv); resolve(); }, 4000); } }); }
+    function waitForPptx() {
+        return new Promise((resolve) => {
+            if (window.PptxGenJS) resolve();
+            else {
+                const iv = setInterval(() => {
+                    if (window.PptxGenJS) { clearInterval(iv); resolve(); }
+                }, 100);
+                setTimeout(() => { clearInterval(iv); resolve(); }, 4000);
+            }
+        });
+    }
     
     const App = () => {
         const [presTitle, setPresTitle] = React.useState("Digital Transformation Strategy 2026");
@@ -62,24 +71,47 @@
         const [colorGroup, setColorGroup] = React.useState(DEFAULT_GROUP);
         const [slides, setSlides] = React.useState(() => {
             const saved = localStorage.getItem(STORAGE_KEY);
-            if(saved) try { const p = JSON.parse(saved); if(p.slides?.length) return p.slides; } catch(e) {}
+            if (saved) try { const p = JSON.parse(saved); if (p.slides?.length) return p.slides; } catch(e) {}
             return getDefaultSlides();
         });
         const [pptReady, setPptReady] = React.useState(false);
         
         React.useEffect(() => { waitForPptx().then(() => setPptReady(true)); }, []);
-        React.useEffect(() => { localStorage.setItem(STORAGE_KEY, JSON.stringify({ presTitle, presSubtitle, author, date, organization, colorGroup, slides })); }, [presTitle, presSubtitle, author, date, organization, colorGroup, slides]);
-        React.useEffect(() => { const saved = localStorage.getItem(STORAGE_KEY); if(saved) try { const d=JSON.parse(saved); if(d.presTitle) setPresTitle(d.presTitle); if(d.presSubtitle) setPresSubtitle(d.presSubtitle); if(d.author) setAuthor(d.author); if(d.date) setDate(d.date); if(d.organization) setOrganization(d.organization); if(d.colorGroup && COLOR_GROUPS[d.colorGroup]) setColorGroup(d.colorGroup); if(d.slides?.length) setSlides(d.slides); } catch(e){} }, []);
+        React.useEffect(() => {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({ presTitle, presSubtitle, author, date, organization, colorGroup, slides }));
+        }, [presTitle, presSubtitle, author, date, organization, colorGroup, slides]);
         
-        const addSlide = () => setSlides(prev => [...prev, { id: uid(), title: "New Slide", content: "• Add key points\n• Use dash or bullet" }]);
+        React.useEffect(() => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) try {
+                const d = JSON.parse(saved);
+                if (d.presTitle) setPresTitle(d.presTitle);
+                if (d.presSubtitle) setPresSubtitle(d.presSubtitle);
+                if (d.author) setAuthor(d.author);
+                if (d.date) setDate(d.date);
+                if (d.organization) setOrganization(d.organization);
+                if (d.colorGroup && COLOR_GROUPS[d.colorGroup]) setColorGroup(d.colorGroup);
+                if (d.slides?.length) setSlides(d.slides);
+            } catch(e) {}
+        }, []);
+        
+        const addSlide = () => setSlides(prev => [...prev, { id: uid(), title: "New Section", content: "• Add your insights\n• Use dash or bullet" }]);
         const updateSlide = (id, field, val) => setSlides(prev => prev.map(s => s.id === id ? {...s, [field]: val} : s));
-        const removeSlide = (id) => { if(slides.length > 1) setSlides(prev => prev.filter(s => s.id !== id)); else alert("Keep at least one slide"); };
-        const moveSlide = (idx, dir) => { if((dir==='up' && idx===0) || (dir==='down' && idx===slides.length-1)) return; const newS = [...slides]; const swap = dir==='up' ? idx-1 : idx+1; [newS[idx], newS[swap]] = [newS[swap], newS[idx]]; setSlides(newS); };
-        const resetDemo = () => { if(confirm("Reset to demo deck?")) setSlides(getDefaultSlides()); };
+        const removeSlide = (id) => { if (slides.length > 1) setSlides(prev => prev.filter(s => s.id !== id)); else alert("Keep at least one slide"); };
+        const moveSlide = (idx, dir) => {
+            if ((dir==='up' && idx===0) || (dir==='down' && idx===slides.length-1)) return;
+            const newS = [...slides];
+            const swap = dir==='up' ? idx-1 : idx+1;
+            [newS[idx], newS[swap]] = [newS[swap], newS[idx]];
+            setSlides(newS);
+        };
+        const resetDemo = () => { if (confirm("Reset to demo deck?")) setSlides(getDefaultSlides()); };
         
-        // ---- FIXED PPTX GENERATION (no shape errors, uses reliable empty text rectangles) ----
+        // --------------------------------------------------------------
+        // PPTX GENERATION – NO SHAPE ERRORS (only addText and addText for rectangles)
+        // --------------------------------------------------------------
         const generatePPTX = async () => {
-            if(!pptReady) { alert("Library still loading, please wait 2 seconds"); return; }
+            if (!pptReady) { alert("Library still loading, please wait a moment"); return; }
             try {
                 const PptxGenJS = window.PptxGenJS;
                 const pptx = new PptxGenJS();
@@ -89,79 +121,91 @@
                 const colors = COLOR_GROUPS[colorGroup];
                 const primary = colors.primary;
                 const secondary = colors.secondary;
+                const lightBg = colors.bgLight;
                 
-                // Helper: convert text to bullet‑aware textBody array
+                // Helper: convert content lines to bullet‑aware text body
                 const makeTextBody = (raw) => {
                     const lines = raw.split(/\r?\n/).filter(l=>l.trim().length);
-                    if(!lines.length) return [{text:"(No content)", options:{bullet:false}}];
+                    if (!lines.length) return [{ text: "(No content)", options: { bullet: false } }];
                     return lines.map(line => {
                         let isBullet = /^[-•*·➢→]\s+/.test(line.trim());
                         let clean = isBullet ? line.replace(/^[-•*·➢→]\s+/, '') : line;
-                        return { text: clean, options: { bullet: isBullet, indentLevel: 0 } };
+                        return { text: clean, options: { bullet: isBullet, indentLevel: 0, color: "#2D3748" } };
                     });
                 };
                 
-                // ---- TITLE SLIDE (with top accent bar using text rectangle) ----
+                // ---- TITLE SLIDE ----
                 const titleSlide = pptx.addSlide();
-                titleSlide.background = { fill: "#FFFFFF" };
-                // Top accent bar (empty text with fill)
-                titleSlide.addText("", { x: 0, y: 0, w: 10, h: 0.12, fill: { color: primary } });
-                titleSlide.addText(presTitle, { x: 0.5, y: 1.6, w: 9, h: 1.2, fontSize: 38, bold: true, color: primary, align: "center" });
-                if(presSubtitle) titleSlide.addText(presSubtitle, { x: 0.5, y: 3.0, w: 9, h: 0.6, fontSize: 18, italic: true, color: "#4B5563", align: "center" });
-                titleSlide.addText(`${author}  |  ${organization}  |  ${date}`, { x: 0.5, y: 4.2, w: 9, h: 0.5, fontSize: 12, color: "#6B7280", align: "center" });
-                // Accent line under title (rectangle via empty text)
-                titleSlide.addText("", { x: 4, y: 4.8, w: 2, h: 0.1, fill: { color: secondary } });
+                titleSlide.background = { fill: lightBg };
+                // Top bar
+                titleSlide.addText("", { x: 0, y: 0, w: 10, h: 0.15, fill: { color: primary } });
+                // Main title
+                titleSlide.addText(presTitle, { x: 0.7, y: 1.8, w: 8, h: 1.4, fontSize: 42, bold: true, color: primary, align: "left" });
+                if (presSubtitle) titleSlide.addText(presSubtitle, { x: 0.7, y: 3.2, w: 8, h: 0.6, fontSize: 18, color: "#4B5563", align: "left" });
+                titleSlide.addText(`${author}  ·  ${organization}  ·  ${date}`, { x: 0.7, y: 4.5, w: 8, h: 0.4, fontSize: 11, color: "#6B7280", align: "left" });
+                // Decorative line under subtitle
+                titleSlide.addText("", { x: 0.7, y: 3.7, w: 1.8, h: 0.08, fill: { color: secondary } });
                 
                 // ---- CONTENT SLIDES ----
-                for(let slide of slides) {
+                for (let slide of slides) {
                     const s = pptx.addSlide();
                     s.background = { fill: "#FFFFFF" };
-                    // Header accent bar (top)
-                    s.addText("", { x: 0, y: 0, w: 10, h: 0.08, fill: { color: primary } });
+                    // Left vertical accent band
+                    s.addText("", { x: 0, y: 0, w: 0.35, h: 5.625, fill: { color: primary } });
+                    // Top thin line
+                    s.addText("", { x: 0.35, y: 0, w: 9.65, h: 0.06, fill: { color: primary } });
+                    
                     // Slide title
-                    s.addText(slide.title || "Untitled", { x: 0.5, y: 0.5, w: 8.5, h: 0.7, fontSize: 28, bold: true, color: primary });
-                    // Title underline accent
-                    s.addText("", { x: 0.5, y: 1.25, w: 1.2, h: 0.07, fill: { color: secondary } });
+                    s.addText(slide.title || "Untitled", { x: 0.7, y: 0.5, w: 8, h: 0.7, fontSize: 28, bold: true, color: primary });
+                    // Title underline
+                    s.addText("", { x: 0.7, y: 1.25, w: 1.4, h: 0.07, fill: { color: secondary } });
+                    
+                    // Content background rectangle (light, non‑rounded)
+                    s.addText("", { x: 0.7, y: 1.5, w: 8.6, h: 3.4, fill: { color: lightBg } });
+                    
                     // Bullet content
                     const textBody = makeTextBody(slide.content);
-                    s.addText(textBody, { x: 0.5, y: 1.6, w: 8.5, h: 3.2, fontSize: 14, color: "#374151", bullet: true, lineSpacing: 24 });
+                    s.addText(textBody, {
+                        x: 0.9, y: 1.7, w: 8.2, h: 3.0,
+                        fontSize: 13, color: "#1F2937", bullet: true,
+                        lineSpacing: 26, indentLevel: 0
+                    });
+                    
                     // Footer
-                    s.addText(`${presTitle} | ${author}`, { x: 0.5, y: 5.2, w: 9, h: 0.3, fontSize: 9, color: "#9CA3AF", align: "center" });
-                    // Corner accent (optional)
-                    s.addText("", { x: 9.2, y: 5.3, w: 0.4, h: 0.15, fill: { color: secondary } });
+                    s.addText(`${presTitle} | ${author}`, { x: 0.7, y: 5.2, w: 8.6, h: 0.3, fontSize: 9, color: "#9CA3AF", align: "right" });
+                    // Small bottom accent
+                    s.addText("", { x: 8.6, y: 5.45, w: 0.7, h: 0.08, fill: { color: secondary } });
                 }
                 
-                const fileName = `${presTitle.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_SlideForge.pptx`;
+                const fileName = `${presTitle.replace(/[^a-z0-9]/gi,'_').slice(0,40)}_DesignedDeck.pptx`;
                 await pptx.writeFile({ fileName });
-                alert("✅ Professional deck exported successfully!");
-            } catch(err) { 
+                alert("✅ Professional deck exported! Slides have left accent bar, title underline, content panel, and brand colors.");
+            } catch (err) {
                 console.error(err);
-                alert("Export error: " + err.message); 
+                alert("Export error: " + err.message);
             }
         };
         
-        if(!pptReady) return <div className="flex justify-center items-center h-screen"><div className="loader"></div><p className="ml-3 text-gray-600">Loading presentation engine...</p></div>;
+        if (!pptReady) return <div className="flex justify-center items-center h-screen"><div className="loader"></div><p className="ml-3 text-gray-600">Loading design engine...</p></div>;
         
         const currentColors = COLOR_GROUPS[colorGroup];
         
         return (
             <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100">
-                {/* Header */}
                 <div className="bg-white border-b border-gray-200 sticky top-0 z-20 shadow-sm">
                     <div className="max-w-7xl mx-auto px-5 py-4 flex flex-wrap justify-between items-center gap-3">
                         <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 rounded-xl bg-gradient-to-r from-indigo-600 to-indigo-800 flex items-center justify-center"><i className="fas fa-chart-simple text-white text-sm"></i></div>
-                            <h1 className="text-2xl font-bold tracking-tight">SlideForge <span className="text-sm font-normal text-gray-500">Pitch‑Deck Studio</span></h1>
+                            <div className="w-8 h-8 rounded-xl flex items-center justify-center" style={{ background: currentColors.primary }}><i className="fas fa-chart-line text-white text-sm"></i></div>
+                            <h1 className="text-2xl font-bold tracking-tight">SlideForge <span className="text-sm font-normal text-gray-500">Design‑First Pitch Studio</span></h1>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={generatePPTX} className="bg-indigo-700 hover:bg-indigo-800 text-white px-5 py-2 rounded-xl shadow-md flex items-center gap-2 transition text-sm font-semibold"><i className="fas fa-download"></i> Export PowerPoint</button>
+                            <button onClick={generatePPTX} className="px-5 py-2 rounded-xl shadow-md flex items-center gap-2 transition text-sm font-semibold text-white" style={{ background: currentColors.primary }}><i className="fas fa-download"></i> Export Designed PPTX</button>
                             <button onClick={resetDemo} className="border border-gray-300 bg-white px-4 py-2 rounded-xl hover:bg-gray-50 text-sm"><i className="fas fa-sync-alt"></i> Demo Deck</button>
                         </div>
                     </div>
                 </div>
                 
                 <div className="max-w-7xl mx-auto px-5 py-6 grid grid-cols-1 lg:grid-cols-3 gap-7">
-                    {/* LEFT: Details & Color Groups */}
                     <div className="space-y-6">
                         <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
                             <h2 className="text-md font-bold flex items-center gap-2 mb-4"><i className="fas fa-sliders-h text-indigo-500"></i> Presentation Identity</h2>
@@ -190,21 +234,10 @@
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-3 text-xs text-gray-400 flex items-center gap-1"><i className="fas fa-magic"></i> Colors applied to titles, accents & exported slides</div>
-                        </div>
-                        
-                        {/* Live preview mini slide */}
-                        <div className="bg-white rounded-2xl shadow-sm p-4 border-l-4" style={{ borderLeftColor: currentColors.primary }}>
-                            <p className="text-xs uppercase font-bold text-gray-400 mb-1">live preview</p>
-                            <div className="flex items-center gap-2">
-                                <i className="fas fa-chalkboard-user text-indigo-400"></i>
-                                <span className="font-medium text-sm" style={{ color: currentColors.primary }}>{presTitle || "Title"}</span>
-                            </div>
-                            <p className="text-xs text-gray-500 mt-1">{slides.length} slides · {colorGroup} theme</p>
+                            <div className="mt-3 text-xs text-gray-500 flex items-center gap-1"><i className="fas fa-palette"></i> Controls all slide accents, sidebars, and title colors.</div>
                         </div>
                     </div>
                     
-                    {/* RIGHT: Slide Editor */}
                     <div className="lg:col-span-2">
                         <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
                             <div className="flex justify-between items-center border-b pb-3 mb-4">
@@ -226,19 +259,19 @@
                                             </div>
                                         </div>
                                         <textarea rows={3} value={slide.content} onChange={e=>updateSlide(slide.id,'content',e.target.value)} className="w-full border border-gray-200 rounded-xl p-3 text-sm font-mono bg-gray-50 focus:bg-white" placeholder="• Bullet points using dash&#10;- First point&#10;• Second point"></textarea>
-                                        <div className="text-right text-[11px] text-gray-400 mt-1"><i className="far fa-comment-dots"></i> Use - or • for automatic bullets in PPTX</div>
+                                        <div className="text-right text-[11px] text-gray-400 mt-1">Use - or • for automatic bullets</div>
                                     </div>
                                 ))}
                             </div>
-                            <div className="mt-4 text-center text-xs text-gray-400 border-t pt-3">✅ Auto‑saved locally · {slides.length} slides · Export includes your color theme</div>
+                            <div className="mt-4 text-center text-xs text-gray-400 border-t pt-3">✅ Auto‑saved · {slides.length} slides · Exported with full styling</div>
                         </div>
-                        <div className="mt-4 bg-gradient-to-r from-indigo-50 to-blue-50 rounded-xl p-3 flex gap-2 text-sm border border-indigo-100">
-                            <i className="fas fa-gem text-indigo-500 mt-0.5"></i>
-                            <span><strong className="font-semibold">Elite tip:</strong> Each slide exports with a professional header, accent bar, and your chosen 3‑color harmony — ready for investors.</span>
+                        <div className="mt-4 rounded-xl p-3 flex gap-2 text-sm border" style={{ background: currentColors.accent, borderColor: currentColors.secondary }}>
+                            <i className="fas fa-gem mt-0.5" style={{ color: currentColors.primary }}></i>
+                            <span><strong className="font-semibold">No shape errors – guaranteed export.</strong> Every slide gets a colored left band, title underline, and clean content panel.</span>
                         </div>
                     </div>
                 </div>
-                <div className="text-center text-gray-400 text-xs py-5 border-t mt-8 bg-white/50">SlideForge · Pitch‑ready presentations · McKinsey‑grade styling · Download and impress</div>
+                <div className="text-center text-gray-400 text-xs py-5 border-t mt-8 bg-white/50">SlideForge · Real Design · Export styled .pptx · Ready for investors</div>
             </div>
         );
     };
