@@ -1,969 +1,356 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>SlideForge — Elite PPT Generator</title>
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;0,700;1,500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
-<style>
-:root {
-  --bg: #f8f7f4;
-  --white: #ffffff;
-  --navy: #0d1b3e;
-  --navy2: #162350;
-  --gold: #c9a84c;
-  --gold2: #e8c97a;
-  --text: #0d1b3e;
-  --muted: #64748b;
-  --border: #e2e8f0;
-  --off: #f1f0ec;
-  --red: #ef4444;
-  --green: #10b981;
-}
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
-html,body{height:100%;}
-body{
-  font-family:'DM Sans',sans-serif;
-  background:var(--bg);
-  color:var(--text);
-  max-width:430px;
-  margin:0 auto;
-  min-height:100vh;
-}
-
-/* HEADER */
-.header{
-  background:var(--navy);
-  padding:48px 22px 24px;
-  position:relative;overflow:hidden;
-}
-.header::after{
-  content:'';position:absolute;right:-40px;top:-40px;
-  width:180px;height:180px;border-radius:50%;
-  background:rgba(201,168,76,0.08);
-}
-.brand{
-  font-family:'Cormorant Garamond',serif;
-  font-size:28px;font-weight:700;color:white;
-  line-height:1;margin-bottom:4px;
-}
-.brand span{color:var(--gold);font-style:italic;}
-.brand-sub{font-size:12px;color:rgba(255,255,255,0.45);font-weight:300;letter-spacing:0.5px;}
-
-.style-chips{
-  display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;
-}
-.style-chip{
-  padding:5px 12px;border-radius:99px;font-size:11px;font-weight:600;
-  border:1px solid rgba(255,255,255,0.15);
-  background:rgba(255,255,255,0.07);
-  color:rgba(255,255,255,0.6);
-  cursor:pointer;transition:all 0.2s;
-}
-.style-chip.active{
-  background:var(--gold);border-color:var(--gold);color:var(--navy);
-}
-
-/* MAIN */
-.main{padding:20px;display:flex;flex-direction:column;gap:16px;padding-bottom:100px;}
-
-/* SECTION CARD */
-.card{
-  background:var(--white);
-  border:1px solid var(--border);
-  border-radius:16px;
-  overflow:hidden;
-}
-.card-header{
-  padding:12px 16px;
-  border-bottom:1px solid var(--border);
-  display:flex;align-items:center;gap:8px;
-}
-.card-num{
-  width:24px;height:24px;border-radius:50%;
-  background:var(--navy);color:white;
-  font-size:11px;font-weight:700;
-  display:flex;align-items:center;justify-content:center;
-  flex-shrink:0;
-}
-.card-title{font-size:13px;font-weight:600;color:var(--text);}
-.card-body{padding:14px 16px;}
-
-/* INPUTS */
-.field-label{
-  font-size:11px;font-weight:600;color:var(--muted);
-  text-transform:uppercase;letter-spacing:0.5px;
-  margin-bottom:5px;
-}
-.field-input{
-  width:100%;background:var(--off);
-  border:1.5px solid var(--border);
-  border-radius:10px;padding:10px 13px;
-  font-size:13px;color:var(--text);
-  font-family:'DM Sans',sans-serif;
-  outline:none;transition:border-color 0.2s;
-  margin-bottom:10px;
-}
-.field-input:focus{border-color:var(--navy);}
-.field-input::placeholder{color:var(--muted);}
-textarea.field-input{resize:none;line-height:1.6;}
-select.field-input{cursor:pointer;appearance:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E");
-  background-repeat:no-repeat;background-position:right 12px center;
-  padding-right:30px;
-}
-select.field-input option{background:white;}
-
-.field-row{display:flex;gap:8px;}
-.field-row .field-input{flex:1;margin-bottom:0;}
-
-/* SLIDE TOPICS */
-.topics-list{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
-.topic-item{
-  display:flex;align-items:center;gap:8px;
-  background:var(--off);border-radius:10px;padding:9px 12px;
-  border:1px solid var(--border);
-}
-.topic-drag{color:var(--muted);font-size:14px;cursor:grab;}
-.topic-input{
-  flex:1;background:none;border:none;outline:none;
-  font-size:13px;color:var(--text);font-family:'DM Sans',sans-serif;
-}
-.topic-del{color:var(--muted);cursor:pointer;font-size:14px;padding:2px;flex-shrink:0;}
-.topic-del:active{color:var(--red);}
-.add-topic-btn{
-  width:100%;padding:9px;border-radius:10px;
-  border:1.5px dashed var(--border);
-  background:none;color:var(--muted);
-  font-size:12px;font-weight:600;cursor:pointer;
-  transition:all 0.2s;font-family:'DM Sans',sans-serif;
-}
-.add-topic-btn:active{background:var(--off);}
-
-/* THEME SELECTOR */
-.themes-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;}
-.theme-card{
-  border-radius:10px;overflow:hidden;
-  cursor:pointer;border:2px solid transparent;
-  transition:all 0.2s;
-}
-.theme-card.selected{border-color:var(--navy);}
-.theme-preview{height:40px;display:flex;}
-.theme-preview-main{flex:2;}
-.theme-preview-accent{flex:1;}
-.theme-name{
-  text-align:center;font-size:10px;font-weight:600;
-  color:var(--muted);padding:4px;
-  background:var(--off);
-}
-.theme-card.selected .theme-name{color:var(--navy);}
-
-/* GENERATE BTN */
-.generate-btn{
-  width:100%;padding:16px;border-radius:14px;
-  background:var(--navy);color:white;border:none;
-  font-family:'Cormorant Garamond',serif;
-  font-size:18px;font-weight:700;cursor:pointer;
-  transition:all 0.2s;letter-spacing:0.3px;
-  display:flex;align-items:center;justify-content:center;gap:10px;
-}
-.generate-btn:active{opacity:0.85;transform:scale(0.98);}
-.generate-btn.loading{background:var(--muted);cursor:not-allowed;}
-.generate-btn .btn-icon{font-size:20px;}
-
-/* PROGRESS */
-.progress-bar{
-  height:4px;background:var(--border);border-radius:99px;overflow:hidden;margin-top:10px;
-}
-.progress-fill{
-  height:100%;background:linear-gradient(90deg,var(--navy),var(--gold));
-  border-radius:99px;width:0%;transition:width 0.5s ease;
-}
-.progress-label{font-size:12px;color:var(--muted);margin-top:6px;text-align:center;}
-
-/* RESULT */
-.result-card{
-  background:var(--navy);border-radius:16px;padding:20px;
-  text-align:center;display:none;
-}
-.result-card.show{display:block;animation:fadeIn 0.4s ease;}
-@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
-.result-icon{font-size:44px;margin-bottom:12px;}
-.result-title{
-  font-family:'Cormorant Garamond',serif;
-  font-size:22px;font-weight:700;color:white;margin-bottom:6px;
-}
-.result-sub{font-size:12px;color:rgba(255,255,255,0.55);margin-bottom:18px;line-height:1.6;}
-.download-btn{
-  width:100%;padding:13px;border-radius:11px;
-  background:linear-gradient(135deg,var(--gold),var(--gold2));
-  color:var(--navy);border:none;
-  font-family:'DM Sans',sans-serif;
-  font-size:14px;font-weight:700;cursor:pointer;
-  margin-bottom:10px;transition:opacity 0.2s;
-}
-.download-btn:active{opacity:0.8;}
-.new-btn{
-  width:100%;padding:11px;border-radius:11px;
-  background:rgba(255,255,255,0.1);color:rgba(255,255,255,0.7);border:none;
-  font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;
-}
-
-/* NOTIF */
-.notif-wrap{position:fixed;top:16px;left:50%;transform:translateX(-50%);width:90%;max-width:380px;z-index:9999;pointer-events:none;}
-.notif{
-  background:var(--navy);border:1px solid rgba(201,168,76,0.3);
-  border-radius:12px;padding:11px 14px;
-  display:flex;align-items:center;gap:10px;
-  box-shadow:0 8px 32px rgba(0,0,0,0.2);
-  transform:translateY(-80px);opacity:0;
-  transition:all 0.4s cubic-bezier(0.34,1.56,0.64,1);
-  pointer-events:all;margin-bottom:8px;
-}
-.notif.show{transform:translateY(0);opacity:1;}
-.notif-t{font-size:12px;font-weight:600;color:var(--gold);}
-.notif-b{font-size:11px;color:rgba(255,255,255,0.5);}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>SlideForge | McKinsey-Style Presentation Builder</title>
+    <!-- Tailwind + Font Awesome + Google Fonts -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
+    <!-- PPTXGenJS for PowerPoint generation -->
+    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <style>
+        * { font-family: 'Inter', sans-serif; }
+        body { background: #f1f4f9; }
+        .slide-card { transition: all 0.2s; }
+        .slide-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0,0,0,0.1); }
+        .color-swatch { width: 32px; height: 32px; border-radius: 999px; cursor: pointer; transition: 0.1s; border: 2px solid transparent; }
+        .color-swatch.active { border-color: white; box-shadow: 0 0 0 2px #1e293b; transform: scale(1.05); }
+        textarea, input, select { transition: all 0.15s; }
+        textarea:focus, input:focus, select:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 3px rgba(59,130,246,0.2); }
+    </style>
 </head>
-<body>
-
-<div class="notif-wrap" id="nw"></div>
-
-<!-- HEADER -->
-<div class="header">
-  <div class="brand">Slide<span>Forge</span></div>
-  <div class="brand-sub">McKinsey-Style Presentations · Elite Standards</div>
-  <div class="style-chips">
-    <div class="style-chip active" onclick="setStyle('mckinsey',this)">McKinsey</div>
-    <div class="style-chip" onclick="setStyle('bcg',this)">BCG</div>
-    <div class="style-chip" onclick="setStyle('executive',this)">Executive</div>
-    <div class="style-chip" onclick="setStyle('academic',this)">Academic</div>
-    <div class="style-chip" onclick="setStyle('pitch',this)">Pitch Deck</div>
-  </div>
-</div>
-
-<div class="main">
-
-  <!-- STEP 1: PRESENTATION DETAILS -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-num">1</div>
-      <div class="card-title">Presentation Details</div>
-    </div>
-    <div class="card-body">
-      <div class="field-label">Presentation Title</div>
-      <input class="field-input" id="presTitle" placeholder="e.g. Digital Transformation Strategy 2025">
-
-      <div class="field-label">Subtitle / Tagline</div>
-      <input class="field-input" id="presSubtitle" placeholder="e.g. Roadmap for Operational Excellence">
-
-      <div class="field-row">
-        <div style="flex:1;">
-          <div class="field-label">Author</div>
-          <input class="field-input" id="presAuthor" placeholder="Ghulam Farid" value="Ghulam Farid">
-        </div>
-        <div style="flex:1;">
-          <div class="field-label">Date</div>
-          <input class="field-input" id="presDate" type="date">
-        </div>
-      </div>
-
-      <div class="field-label">Organization / University</div>
-      <input class="field-input" id="presOrg" placeholder="e.g. University of XYZ / Company Name">
-    </div>
-  </div>
-
-  <!-- STEP 2: SLIDE TOPICS -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-num">2</div>
-      <div class="card-title">Slide Topics</div>
-    </div>
-    <div class="card-body">
-      <div class="field-label">Add each slide topic / section</div>
-      <div class="topics-list" id="topicsList"></div>
-      <button class="add-topic-btn" onclick="addTopic()">＋ Add Slide Topic</button>
-    </div>
-  </div>
-
-  <!-- STEP 3: CONTENT -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-num">3</div>
-      <div class="card-title">Full Context & Content</div>
-    </div>
-    <div class="card-body">
-      <div class="field-label">Paste your full content, notes, or context here</div>
-      <textarea class="field-input" id="presContent" rows="8" placeholder="Paste everything here — research notes, data points, key findings, arguments, statistics, conclusions. The more detail you provide, the better your slides.
-
-Example:
-- Q3 revenue grew 23% YoY to $4.2M
-- Key driver: digital channels up 45%
-- Challenge: operational costs increased 12%
-- Recommendation: invest in automation..."></textarea>
-
-      <div class="field-row">
-        <div style="flex:1;">
-          <div class="field-label">Slides Count</div>
-          <select class="field-input" id="slideCount">
-            <option value="5">5 slides</option>
-            <option value="8" selected>8 slides</option>
-            <option value="10">10 slides</option>
-            <option value="12">12 slides</option>
-            <option value="15">15 slides</option>
-          </select>
-        </div>
-        <div style="flex:1;">
-          <div class="field-label">Audience</div>
-          <select class="field-input" id="presAudience">
-            <option value="executive">C-Suite / Board</option>
-            <option value="academic">Academic / Research</option>
-            <option value="investor">Investors / VC</option>
-            <option value="team">Team / Internal</option>
-            <option value="client">Client / External</option>
-          </select>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- STEP 4: THEME -->
-  <div class="card">
-    <div class="card-header">
-      <div class="card-num">4</div>
-      <div class="card-title">Color Theme</div>
-    </div>
-    <div class="card-body">
-      <div class="themes-grid" id="themesGrid">
-        <div class="theme-card selected" onclick="setTheme('midnight',this)">
-          <div class="theme-preview">
-            <div class="theme-preview-main" style="background:#1E2761;"></div>
-            <div class="theme-preview-accent" style="background:#CADCFC;"></div>
-          </div>
-          <div class="theme-name">Midnight</div>
-        </div>
-        <div class="theme-card" onclick="setTheme('charcoal',this)">
-          <div class="theme-preview">
-            <div class="theme-preview-main" style="background:#36454F;"></div>
-            <div class="theme-preview-accent" style="background:#F2F2F2;"></div>
-          </div>
-          <div class="theme-name">Charcoal</div>
-        </div>
-        <div class="theme-card" onclick="setTheme('ocean',this)">
-          <div class="theme-preview">
-            <div class="theme-preview-main" style="background:#065A82;"></div>
-            <div class="theme-preview-accent" style="background:#A8DADC;"></div>
-          </div>
-          <div class="theme-name">Ocean</div>
-        </div>
-        <div class="theme-card" onclick="setTheme('forest',this)">
-          <div class="theme-preview">
-            <div class="theme-preview-main" style="background:#2C5F2D;"></div>
-            <div class="theme-preview-accent" style="background:#97BC62;"></div>
-          </div>
-          <div class="theme-name">Forest</div>
-        </div>
-        <div class="theme-card" onclick="setTheme('cherry',this)">
-          <div class="theme-preview">
-            <div class="theme-preview-main" style="background:#990011;"></div>
-            <div class="theme-preview-accent" style="background:#FCF6F5;"></div>
-          </div>
-          <div class="theme-name">Cherry</div>
-        </div>
-        <div class="theme-card" onclick="setTheme('teal',this)">
-          <div class="theme-preview">
-            <div class="theme-preview-main" style="background:#028090;"></div>
-            <div class="theme-preview-accent" style="background:#02C39A;"></div>
-          </div>
-          <div class="theme-name">Teal</div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- GENERATE -->
-  <button class="generate-btn" id="generateBtn" onclick="generatePPT()">
-    <span class="btn-icon">⚡</span>
-    Generate Elite Slides
-  </button>
-  <div class="progress-bar" id="progressBar" style="display:none;">
-    <div class="progress-fill" id="progressFill"></div>
-  </div>
-  <div class="progress-label" id="progressLabel" style="display:none;"></div>
-
-  <!-- RESULT -->
-  <div class="result-card" id="resultCard">
-    <div class="result-icon">🎯</div>
-    <div class="result-title">Slides Ready!</div>
-    <div class="result-sub" id="resultSub">Your McKinsey-style presentation has been generated.</div>
-    <button class="download-btn" id="downloadBtn">⬇️ Download .pptx File</button>
-    <button class="new-btn" onclick="resetAll()">↺ Generate New Presentation</button>
-  </div>
-
-</div>
-
-<script>
-// ===== STATE =====
-let selectedStyle = 'mckinsey';
-let selectedTheme = 'midnight';
-let generatedPres = null;
-let generatedFileName = '';
-
-const THEMES = {
-  midnight: { primary: '1E2761', secondary: 'CADCFC', accent: 'C9A84C', text: 'FFFFFF', dark: '0D1A4E' },
-  charcoal: { primary: '36454F', secondary: 'F2F2F2', accent: '8B9DA7', text: 'FFFFFF', dark: '212D33' },
-  ocean:    { primary: '065A82', secondary: 'A8DADC', accent: '1C9BB0', text: 'FFFFFF', dark: '033A55' },
-  forest:   { primary: '2C5F2D', secondary: 'E8F5E4', accent: '97BC62', text: 'FFFFFF', dark: '1A3A1B' },
-  cherry:   { primary: '990011', secondary: 'FCF6F5', accent: 'C41230', text: 'FFFFFF', dark: '660009' },
-  teal:     { primary: '028090', secondary: 'E0F7FA', accent: '02C39A', text: 'FFFFFF', dark: '015F6B' },
-};
-
-// ===== INIT =====
-function init() {
-  const today = new Date().toISOString().split('T')[0];
-  document.getElementById('presDate').value = today;
-  // Default topics
-  const defaults = ['Executive Summary', 'Problem Statement', 'Analysis & Findings', 'Strategic Recommendations', 'Implementation Roadmap', 'Financial Impact', 'Risk Assessment', 'Conclusion & Next Steps'];
-  defaults.slice(0,5).forEach(t => addTopic(t));
-}
-
-// ===== TOPICS =====
-function addTopic(val='') {
-  const list = document.getElementById('topicsList');
-  const id = 'topic-' + Date.now() + Math.random();
-  const div = document.createElement('div');
-  div.className = 'topic-item';
-  div.id = id;
-  div.innerHTML = `
-    <span class="topic-drag">⠿</span>
-    <input class="topic-input" value="${val}" placeholder="Slide topic...">
-    <span class="topic-del" onclick="document.getElementById('${id}').remove()">✕</span>
-  `;
-  list.appendChild(div);
-}
-
-function getTopics() {
-  return [...document.querySelectorAll('.topic-input')]
-    .map(i => i.value.trim()).filter(Boolean);
-}
-
-// ===== STYLE / THEME =====
-function setStyle(s, el) {
-  selectedStyle = s;
-  document.querySelectorAll('.style-chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-}
-
-function setTheme(t, el) {
-  selectedTheme = t;
-  document.querySelectorAll('.theme-card').forEach(c => c.classList.remove('selected'));
-  el.classList.add('selected');
-}
-
-// ===== PROGRESS =====
-function setProgress(pct, label) {
-  document.getElementById('progressFill').style.width = pct + '%';
-  document.getElementById('progressLabel').textContent = label;
-}
-
-// ===== GENERATE =====
-async function generatePPT() {
-  const title = document.getElementById('presTitle').value.trim();
-  const content = document.getElementById('presContent').value.trim();
-
-  if (!title) { showNotif('⚠️','Missing Title','Please enter a presentation title'); return; }
-  if (!content) { showNotif('⚠️','Missing Content','Please add your content and context'); return; }
-
-  const btn = document.getElementById('generateBtn');
-  btn.classList.add('loading');
-  btn.innerHTML = '<span class="btn-icon">⏳</span> Generating...';
-  document.getElementById('progressBar').style.display = 'block';
-  document.getElementById('progressLabel').style.display = 'block';
-  document.getElementById('resultCard').classList.remove('show');
-
-  try {
-    setProgress(10, 'Setting up presentation...');
-    await sleep(200);
-
-    const subtitle   = document.getElementById('presSubtitle').value.trim();
-    const author     = document.getElementById('presAuthor').value.trim() || 'Ghulam Farid';
-    const date       = document.getElementById('presDate').value;
-    const org        = document.getElementById('presOrg').value.trim();
-    const topics     = getTopics();
-    const slideCount = parseInt(document.getElementById('slideCount').value);
-    const audience   = document.getElementById('presAudience').value;
-    const theme      = THEMES[selectedTheme];
-
-    setProgress(20, 'Creating slides...');
-    await sleep(200);
-
-    const pres = new PptxGenJS();
-    pres.layout = 'LAYOUT_16x9';
-    pres.author = author;
-    pres.title  = title;
-    pres.subject = subtitle || title;
-
-    setProgress(30, 'Building title slide...');
-    await sleep(100);
-
-    // ===== SLIDE 1: TITLE =====
-    buildTitleSlide(pres, theme, title, subtitle, author, org, date);
-
-    setProgress(40, 'Building agenda slide...');
-    await sleep(100);
-
-    // ===== SLIDE 2: AGENDA / TABLE OF CONTENTS =====
-    if (topics.length > 0) buildAgendaSlide(pres, theme, topics);
-
-    setProgress(50, 'Parsing content...');
-    await sleep(100);
-
-    // Parse content into sections
-    const sections = parseContent(content, topics, slideCount - 3);
-
-    setProgress(60, 'Building content slides...');
-    await sleep(100);
-
-    // ===== CONTENT SLIDES =====
-    let slideIdx = 0;
-    for (const section of sections) {
-      const progress = 60 + (slideIdx / sections.length) * 25;
-      setProgress(progress, `Building slide ${slideIdx + 3} of ${sections.length + 3}...`);
-      await sleep(80);
-      buildContentSlide(pres, theme, section, slideIdx, selectedStyle);
-      slideIdx++;
-    }
-
-    setProgress(88, 'Building conclusion slide...');
-    await sleep(100);
-
-    // ===== LAST SLIDE: CONCLUSION =====
-    buildConclusionSlide(pres, theme, title, author, org);
-
-    setProgress(95, 'Finalizing file...');
-    await sleep(200);
-
-    generatedFileName = title.replace(/[^a-z0-9]/gi,'_').substring(0,40) + '_' + selectedStyle + '.pptx';
-    generatedPres = pres;
-
-    setProgress(100, 'Done!');
-    await sleep(300);
-
-    // Show result
-    document.getElementById('resultSub').textContent =
-      `${slideIdx + 3} slides generated in ${selectedStyle.toUpperCase()} style with ${selectedTheme} theme. Ready to download!`;
-    document.getElementById('resultCard').classList.add('show');
-    document.getElementById('downloadBtn').onclick = () => pres.writeFile({ fileName: generatedFileName });
-    document.getElementById('resultCard').scrollIntoView({ behavior:'smooth' });
-    showNotif('🎯','Slides Ready!', generatedFileName, 'ok');
-
-  } catch(e) {
-    console.error(e);
-    showNotif('❌','Error',e.message || 'Something went wrong');
-  } finally {
-    btn.classList.remove('loading');
-    btn.innerHTML = '<span class="btn-icon">⚡</span> Generate Elite Slides';
-    setTimeout(() => {
-      document.getElementById('progressBar').style.display = 'none';
-      document.getElementById('progressLabel').style.display = 'none';
-    }, 2000);
-  }
-}
-
-// ===== SLIDE BUILDERS =====
-
-function buildTitleSlide(pres, theme, title, subtitle, author, org, date) {
-  const s = pres.addSlide();
-
-  // Full background
-  s.background = { color: theme.primary };
-
-  // Left accent bar
-  s.addShape(pres.ShapeType.rect, {
-    x: 0, y: 0, w: 0.18, h: 5.625,
-    fill: { color: theme.accent }, line: { color: theme.accent }
-  });
-
-  // Bottom dark band
-  s.addShape(pres.ShapeType.rect, {
-    x: 0, y: 4.4, w: 10, h: 1.225,
-    fill: { color: theme.dark }, line: { color: theme.dark }
-  });
-
-  // Top label
-  s.addText(selectedStyle.toUpperCase() + ' STYLE PRESENTATION', {
-    x: 0.4, y: 0.3, w: 9, h: 0.3,
-    fontSize: 9, color: theme.accent,
-    fontFace: 'Calibri', bold: true, charSpacing: 3, margin: 0
-  });
-
-  // Main title
-  s.addText(title, {
-    x: 0.4, y: 1.1, w: 8.8, h: 2.0,
-    fontSize: 36, color: 'FFFFFF',
-    fontFace: 'Georgia', bold: true,
-    valign: 'top', margin: 0
-  });
-
-  // Subtitle
-  if (subtitle) {
-    s.addText(subtitle, {
-      x: 0.4, y: 3.1, w: 8, h: 0.7,
-      fontSize: 16, color: theme.secondary,
-      fontFace: 'Calibri', italic: true, margin: 0
-    });
-  }
-
-  // Author + org + date
-  const bottomText = [author, org, date ? new Date(date+'T00:00:00').toLocaleDateString('en-US',{year:'numeric',month:'long',day:'numeric'}) : '']
-    .filter(Boolean).join('   |   ');
-
-  s.addText(bottomText, {
-    x: 0.4, y: 4.55, w: 9, h: 0.4,
-    fontSize: 11, color: 'AAAAAA',
-    fontFace: 'Calibri', margin: 0
-  });
-
-  // Confidential tag
-  s.addText('CONFIDENTIAL', {
-    x: 7.5, y: 4.55, w: 2.2, h: 0.4,
-    fontSize: 9, color: theme.accent,
-    fontFace: 'Calibri', bold: true, align: 'right', charSpacing: 2, margin: 0
-  });
-}
-
-function buildAgendaSlide(pres, theme, topics) {
-  const s = pres.addSlide();
-  s.background = { color: 'F8F7F4' };
-
-  // Left navy bar
-  s.addShape(pres.ShapeType.rect, {
-    x: 0, y: 0, w: 3.2, h: 5.625,
-    fill: { color: theme.primary }, line: { color: theme.primary }
-  });
-
-  // Agenda label on left
-  s.addText('AGENDA', {
-    x: 0.15, y: 0.4, w: 2.8, h: 0.4,
-    fontSize: 11, color: theme.accent,
-    fontFace: 'Calibri', bold: true, charSpacing: 3, margin: 0
-  });
-
-  s.addText('Contents', {
-    x: 0.15, y: 0.85, w: 2.8, h: 1.2,
-    fontSize: 28, color: 'FFFFFF',
-    fontFace: 'Georgia', bold: true, margin: 0
-  });
-
-  // Topics on right
-  const maxShow = Math.min(topics.length, 8);
-  const itemH = 4.2 / maxShow;
-  for (let i = 0; i < maxShow; i++) {
-    const y = 0.6 + i * itemH;
-    // Number circle
-    s.addShape(pres.ShapeType.ellipse, {
-      x: 3.5, y: y + 0.04, w: 0.35, h: 0.35,
-      fill: { color: i === 0 ? theme.accent : 'E8E6E0' },
-      line: { color: i === 0 ? theme.accent : 'E8E6E0' }
-    });
-    s.addText(String(i + 1), {
-      x: 3.5, y: y + 0.04, w: 0.35, h: 0.35,
-      fontSize: 11, fontFace: 'Calibri', bold: true,
-      color: i === 0 ? theme.primary : '888888',
-      align: 'center', valign: 'middle', margin: 0
-    });
-    // Topic text
-    s.addText(topics[i], {
-      x: 4.0, y: y, w: 5.7, h: 0.42,
-      fontSize: 13, fontFace: 'Calibri',
-      color: i === 0 ? theme.primary : '555555',
-      bold: i === 0, valign: 'middle', margin: 0
-    });
-    // Divider
-    if (i < maxShow - 1) {
-      s.addShape(pres.ShapeType.line, {
-        x: 3.5, y: y + 0.44, w: 6.3, h: 0,
-        line: { color: 'E0DDD8', width: 0.5 }
-      });
-    }
-  }
-}
-
-function buildContentSlide(pres, theme, section, idx, style) {
-  const s = pres.addSlide();
-  s.background = { color: 'FFFFFF' };
-
-  // Top colored header band
-  s.addShape('rect', {
-  x: 5.9, y: 1.1, w: 3.8, h: 3.9,
-  fill: { color: theme.primary },
-  line: { color: theme.primary },
-  shadow: { type: 'outer', blur: 8, offset: 3, angle: 135, color: '000000', opacity: 0.12 }
-});
-
-s.addShape('rect', {
-  x: 5.9, y: 1.1, w: 0.1, h: 3.9,
-  fill: { color: theme.accent }, line: { color: theme.accent }
-});
-
-  // Slide title in header
-  s.addText(section.title.toUpperCase(), {
-    x: 0.28, y: 0.12, w: 8, h: 0.45,
-    fontSize: 18, color: 'FFFFFF',
-    fontFace: 'Georgia', bold: true, margin: 0
-  });
-
-  // Slide number
-  s.addText(String(idx + 3).padStart(2,'0'), {
-    x: 8.5, y: 0.15, w: 1.2, h: 0.4,
-    fontSize: 20, color: theme.accent,
-    fontFace: 'Georgia', bold: true, align: 'right', margin: 0
-  });
-
-  // Choose layout based on content type
-  if (section.bullets && section.bullets.length > 0) {
-    if (section.insight) {
-      buildTwoColumnLayout(s, theme, section);
-    } else {
-      buildBulletsLayout(s, theme, section);
-    }
-  } else {
-    buildTextLayout(s, theme, section);
-  }
-
-  // Footer
-  s.addShape(pres.ShapeType.rect, {
-    x: 0, y: 5.35, w: 10, h: 0.275,
-    fill: { color: 'F0EDE8' }, line: { color: 'F0EDE8' }
-  });
-  s.addText('CONFIDENTIAL  |  ' + (document.getElementById('presTitle').value || 'Presentation').toUpperCase().substring(0,40), {
-    x: 0.3, y: 5.37, w: 9.4, h: 0.22,
-    fontSize: 7, color: 'AAAAAA',
-    fontFace: 'Calibri', charSpacing: 1, margin: 0
-  });
-}
-
-function buildBulletsLayout(s, theme, section) {
-  // Key insight box if available
-  let contentY = 1.15;
-
-  if (section.keyMessage) {
-    s.addShape(pres.ShapeType.rect, {
-      x: 0.3, y: 1.1, w: 9.4, h: 0.65,
-      fill: { color: theme.secondary.length === 6 ? theme.secondary : 'E8F0FE' },
-      line: { color: theme.accent }
-    });
-    s.addText('KEY MESSAGE: ' + section.keyMessage, {
-      x: 0.5, y: 1.15, w: 9.0, h: 0.55,
-      fontSize: 12, color: theme.primary,
-      fontFace: 'Calibri', bold: true,
-      valign: 'middle', margin: 0
-    });
-    contentY = 1.9;
-  }
-
-  // Bullet points
-  const bullets = section.bullets.slice(0, 6);
-  const bulletItems = bullets.map((b, i) => ({
-    text: b,
-    options: {
-      bullet: true,
-      fontSize: 13,
-      fontFace: 'Calibri',
-      color: '333333',
-      breakLine: i < bullets.length - 1,
-      paraSpaceAfter: 8
-    }
-  }));
-
-  s.addText(bulletItems, {
-    x: 0.4, y: contentY, w: 9.2, h: 5.35 - contentY - 0.3,
-    valign: 'top', margin: 4
-  });
-}
-
-function buildTwoColumnLayout(s, theme, section) {
-  // Left column: bullets
-  const bullets = section.bullets.slice(0, 5);
-  const bulletItems = bullets.map((b, i) => ({
-    text: b,
-    options: { bullet: true, fontSize: 12, fontFace: 'Calibri', color: '333333', breakLine: i < bullets.length - 1, paraSpaceAfter: 8 }
-  }));
-
-  s.addText(bulletItems, { x: 0.3, y: 1.15, w: 5.2, h: 3.9, valign: 'top', margin: 4 });
-
-  // Right column: insight card
-  s.addShape(pres.ShapeType.rect, {
-    x: 5.9, y: 1.1, w: 3.8, h: 3.9,
-    fill: { color: theme.primary },
-    line: { color: theme.primary },
-    shadow: { type: 'outer', blur: 8, offset: 3, angle: 135, color: '000000', opacity: 0.12 }
-  });
-  s.addShape(pres.ShapeType.rect, {
-    x: 5.9, y: 1.1, w: 0.1, h: 3.9,
-    fill: { color: theme.accent }, line: { color: theme.accent }
-  });
-  s.addText('KEY INSIGHT', {
-    x: 6.1, y: 1.25, w: 3.4, h: 0.3,
-    fontSize: 9, color: theme.accent,
-    fontFace: 'Calibri', bold: true, charSpacing: 2, margin: 0
-  });
-  s.addText(section.insight, {
-    x: 6.1, y: 1.65, w: 3.4, h: 2.8,
-    fontSize: 13, color: 'FFFFFF',
-    fontFace: 'Georgia', italic: true,
-    valign: 'top', margin: 0
-  });
-}
-
-function buildTextLayout(s, theme, section) {
-  s.addText(section.body || '', {
-    x: 0.4, y: 1.15, w: 9.2, h: 3.9,
-    fontSize: 13, color: '333333',
-    fontFace: 'Calibri', valign: 'top',
-    margin: 4, lineSpacingMultiple: 1.4
-  });
-}
-
-function buildConclusionSlide(pres, theme, title, author, org) {
-  const s = pres.addSlide();
-  s.background = { color: theme.dark };
-
-  // Center accent shape
-  s.addShape(pres.ShapeType.rect, {
-    x: 0, y: 2.3, w: 10, h: 0.08,
-    fill: { color: theme.accent }, line: { color: theme.accent }
-  });
-
-  s.addText('THANK YOU', {
-    x: 0.5, y: 0.8, w: 9, h: 1.4,
-    fontSize: 52, color: 'FFFFFF',
-    fontFace: 'Georgia', bold: true, align: 'center', margin: 0
-  });
-
-  s.addText(title, {
-    x: 0.5, y: 2.55, w: 9, h: 0.6,
-    fontSize: 16, color: theme.accent,
-    fontFace: 'Calibri', italic: true, align: 'center', margin: 0
-  });
-
-  s.addText([
-    { text: author, options: { bold: true, breakLine: true } },
-    { text: org || '', options: { breakLine: true } },
-  ], {
-    x: 0.5, y: 3.4, w: 9, h: 0.9,
-    fontSize: 13, color: 'BBBBBB',
-    fontFace: 'Calibri', align: 'center', margin: 0
-  });
-
-  s.addText('Questions & Discussion', {
-    x: 0.5, y: 4.5, w: 9, h: 0.4,
-    fontSize: 11, color: theme.accent,
-    fontFace: 'Calibri', charSpacing: 2, align: 'center', margin: 0
-  });
-}
-
-// ===== CONTENT PARSER =====
-function parseContent(content, topics, maxSlides) {
-  const lines = content.split('\n').map(l => l.trim()).filter(Boolean);
-  const sections = [];
-
-  if (topics.length > 0) {
-    // Use provided topics as section titles
-    const linesPerTopic = Math.ceil(lines.length / topics.length);
-    const count = Math.min(topics.length, maxSlides);
-
-    for (let i = 0; i < count; i++) {
-      const start = i * linesPerTopic;
-      const chunk = lines.slice(start, start + linesPerTopic);
-      sections.push(buildSection(topics[i], chunk, i));
-    }
-  } else {
-    // Auto-split content
-    const chunkSize = Math.ceil(lines.length / maxSlides);
-    for (let i = 0; i < maxSlides && i * chunkSize < lines.length; i++) {
-      const chunk = lines.slice(i * chunkSize, (i+1) * chunkSize);
-      sections.push(buildSection('Section ' + (i+1), chunk, i));
-    }
-  }
-
-  return sections;
-}
-
-function buildSection(title, lines, idx) {
-  const bullets = [];
-  let body = '';
-  let insight = '';
-  let keyMessage = '';
-
-  for (const line of lines) {
-    const clean = line.replace(/^[-•*]\s*/, '').replace(/^\d+\.\s*/, '');
-    if (clean.length > 0) {
-      if (line.startsWith('-') || line.startsWith('•') || line.startsWith('*')) {
-        bullets.push(clean);
-      } else if (line.match(/^\d+\./)) {
-        bullets.push(clean);
-      } else if (clean.length < 120 && bullets.length < 3) {
-        bullets.push(clean);
-      } else {
-        body += clean + ' ';
-      }
-    }
-  }
-
-  // Extract insight from longest bullet or body sentence
-  const allText = [...bullets, body].join(' ');
-  const sentences = allText.split(/[.!?]+/).filter(s => s.trim().length > 30);
-  if (sentences.length > 0) {
-    insight = sentences[Math.floor(sentences.length / 2)].trim();
-    if (insight.length > 150) insight = insight.substring(0, 147) + '...';
-  }
-
-  // Key message from first meaningful line
-  if (bullets.length > 0) {
-    keyMessage = bullets[0].length > 100 ? bullets[0].substring(0, 97) + '...' : bullets[0];
-    bullets.shift(); // remove from bullets so no duplicate
-  }
-
-  return {
-    title,
-    bullets: bullets.slice(0, 6),
-    body: body.trim(),
-    insight: insight || '',
-    keyMessage: keyMessage || ''
-  };
-}
-
-// ===== UTILS =====
-function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
-
-function resetAll() {
-  document.getElementById('presTitle').value = '';
-  document.getElementById('presSubtitle').value = '';
-  document.getElementById('presContent').value = '';
-  document.getElementById('presOrg').value = '';
-  document.getElementById('topicsList').innerHTML = '';
-  document.getElementById('resultCard').classList.remove('show');
-  ['topic-1','topic-2','topic-3','topic-4','topic-5'].forEach((t,i) => {
-    const defaults = ['Executive Summary','Problem Statement','Key Findings','Recommendations','Conclusion'];
-    addTopic(defaults[i]);
-  });
-  window.scrollTo({top:0,behavior:'smooth'});
-}
-
-function showNotif(icon, title, body) {
-  const nw = document.getElementById('nw');
-  const id = 'n'+Date.now();
-  const d = document.createElement('div');
-  d.className='notif';d.id=id;
-  d.innerHTML=`<div style="font-size:18px">${icon}</div><div style="flex:1"><div class="notif-t">${title}</div><div class="notif-b">${body}</div></div>`;
-  nw.appendChild(d);
-  setTimeout(()=>d.classList.add('show'),10);
-  setTimeout(()=>{d.classList.remove('show');setTimeout(()=>d.remove(),400);},4000);
-}
-
-init();
+<body class="antialiased">
+
+<div id="root"></div>
+
+<!-- React + ReactDOM + Babel -->
+<script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
+
+<script type="text/babel">
+    // ----- THEME COLOR PRESETS (McKinsey / Elite palette) -----
+    const COLOR_THEMES = {
+        "Midnight": { primary: "#1E293B", secondary: "#3B82F6", accent: "#94A3B8" },
+        "Charcoal": { primary: "#2D2E32", secondary: "#8D99AE", accent: "#E5E7EB" },
+        "Ocean": { primary: "#0F4C5C", secondary: "#2C7A7B", accent: "#E2E8F0" },
+        "Forest": { primary: "#14532D", secondary: "#22C55E", accent: "#D1D5DB" },
+        "Cherry": { primary: "#9B2C2C", secondary: "#EF4444", accent: "#FEF2F2" },
+        "Teal": { primary: "#134E4A", secondary: "#14B8A6", accent: "#CCFBF1" }
+    };
+    const DEFAULT_THEME = "Midnight";
+
+    // ----- Helper: generate unique ID -----
+    const uid = () => Date.now() + '-' + Math.random().toString(36).substring(2, 8);
+
+    // ----- Default demo slides (showing the power of SlideForge) -----
+    const getDefaultSlides = () => [
+        { id: uid(), title: "Executive Summary", content: "- Digital transformation accelerates growth by 34%\n- Market shifts demand agile strategy\n- Our investment: $4.2M over 18 months" },
+        { id: uid(), title: "Problem Statement", content: "- Legacy systems cause 22% downtime\n- Customer churn increased 15% YoY\n- Competitors outpace innovation" },
+        { id: uid(), title: "Strategic Recommendations", content: "• Adopt cloud-native infrastructure\n• Launch AI-driven personalization\n• Restructure product teams to agile" },
+        { id: uid(), title: "Implementation Roadmap", content: "Q1 2026: Foundation & pilots\nQ2 2026: Scale across regions\nQ3 2026: Full integration & KPI tracking" }
+    ];
+
+    // ----- LocalStorage key -----
+    const STORAGE_KEY = "slideforge_presentation";
+
+    // ----- Main App Component -----
+    const App = () => {
+        // Presentation metadata
+        const [presTitle, setPresTitle] = React.useState("Digital Transformation Strategy 2025");
+        const [presSubtitle, setPresSubtitle] = React.useState("Roadmap for Operational Excellence");
+        const [author, setAuthor] = React.useState("Ghulam Farid");
+        const [date, setDate] = React.useState(new Date().toLocaleDateString('en-US'));
+        const [organization, setOrganization] = React.useState("Strategy & Operations");
+        const [colorTheme, setColorTheme] = React.useState(DEFAULT_THEME);
+        
+        // Slides array: each { id, title, content }
+        const [slides, setSlides] = React.useState(() => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    if (parsed.slides && parsed.slides.length) return parsed.slides;
+                } catch(e) {}
+            }
+            return getDefaultSlides();
+        });
+
+        // Sync to localStorage whenever slides or presentation metadata changes
+        React.useEffect(() => {
+            const toStore = {
+                presTitle, presSubtitle, author, date, organization, colorTheme, slides
+            };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(toStore));
+        }, [presTitle, presSubtitle, author, date, organization, colorTheme, slides]);
+
+        // Load additional fields from storage on mount
+        React.useEffect(() => {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const data = JSON.parse(saved);
+                    if (data.presTitle) setPresTitle(data.presTitle);
+                    if (data.presSubtitle) setPresSubtitle(data.presSubtitle);
+                    if (data.author) setAuthor(data.author);
+                    if (data.date) setDate(data.date);
+                    if (data.organization) setOrganization(data.organization);
+                    if (data.colorTheme && COLOR_THEMES[data.colorTheme]) setColorTheme(data.colorTheme);
+                    if (data.slides && data.slides.length) setSlides(data.slides);
+                } catch(e) {}
+            }
+        }, []);
+
+        // Slide CRUD
+        const addSlide = () => {
+            const newSlide = {
+                id: uid(),
+                title: "New Slide Topic",
+                content: "• Add your key points here\n• Use dash or bullet list\n• Each line becomes a paragraph"
+            };
+            setSlides(prev => [...prev, newSlide]);
+        };
+
+        const updateSlide = (id, field, value) => {
+            setSlides(prev => prev.map(slide => slide.id === id ? { ...slide, [field]: value } : slide));
+        };
+
+        const removeSlide = (id) => {
+            if (slides.length === 1) {
+                if (confirm("At least one slide required. Add a new slide before deleting the last one.")) return;
+                else return;
+            }
+            setSlides(prev => prev.filter(s => s.id !== id));
+        };
+
+        const moveSlide = (index, direction) => {
+            if ((direction === 'up' && index === 0) || (direction === 'down' && index === slides.length-1)) return;
+            const newSlides = [...slides];
+            const swapIndex = direction === 'up' ? index-1 : index+1;
+            [newSlides[index], newSlides[swapIndex]] = [newSlides[swapIndex], newSlides[index]];
+            setSlides(newSlides);
+        };
+
+        // ----- PPTX GENERATION (downloadable) -----
+        const generatePPTX = async () => {
+            const PptxGenJS = window.PptxGenJS;
+            const pptx = new PptxGenJS();
+            // Set presentation properties
+            pptx.layout = 'LAYOUT_WIDE';
+            pptx.defineLayout({ name:'WIDE', width:10, height:5.625 }); // 16:9 aspect
+            pptx.layout = 'WIDE';
+            
+            const themeColors = COLOR_THEMES[colorTheme] || COLOR_THEMES[DEFAULT_THEME];
+            const primaryHex = themeColors.primary;
+            const secondaryHex = themeColors.secondary;
+            
+            // Helper to add a standard slide with title and bullet-friendly content
+            const addContentSlide = (slideTitle, slideContent) => {
+                const slide = pptx.addSlide();
+                // optional: set background color light grey
+                slide.background = { fill: "#F8FAFC" };
+                // Title with accent bar
+                slide.addText(slideTitle, {
+                    x: 0.5, y: 0.4, w: 9.0, h: 0.8,
+                    fontSize: 28, bold: true, color: primaryHex,
+                    fontFace: "Segoe UI", valign: "bottom"
+                });
+                // Add small accent line
+                slide.addShape(pptx.ShapeType.RECTANGLE, {
+                    x: 0.5, y: 1.2, w: 1.2, h: 0.08, fill: { color: secondaryHex }
+                });
+                
+                // Parse content lines into bullet / normal paragraphs
+                const lines = slideContent.split(/\r?\n/).filter(l => l.trim().length > 0);
+                const paragraphs = [];
+                for (let line of lines) {
+                    let isBullet = false;
+                    let cleanLine = line;
+                    // Detect bullet starters: "- ", "• ", "* ", "· "
+                    if (/^[-•*·]\s/.test(line.trim())) {
+                        isBullet = true;
+                        cleanLine = line.replace(/^[-•*·]\s+/, '');
+                    }
+                    // also support numbered? we treat as normal text but keep as is
+                    paragraphs.push({
+                        text: cleanLine,
+                        options: { bullet: isBullet, indentLevel: 0 }
+                    });
+                }
+                if (paragraphs.length === 0) {
+                    slide.addText("(No content provided)", { x: 0.5, y: 1.6, w: 8.5, h: 3, fontSize: 14, color: "#64748B" });
+                } else {
+                    slide.addText(paragraphs, {
+                        x: 0.5, y: 1.5, w: 8.5, h: 3.5,
+                        fontSize: 14, fontFace: "Segoe UI", color: "#334155",
+                        bullet: true, indent: 0.2
+                    });
+                }
+                // Optional footer
+                slide.addText(`${presTitle || "SlideForge"} | ${author}`, { x: 0.5, y: 5.2, w: 9, h: 0.3, fontSize: 9, color: "#94A3B8", align: "center" });
+            };
+            
+            // ---- Title slide (presentation metadata) ----
+            const titleSlide = pptx.addSlide();
+            titleSlide.background = { fill: "#FFFFFF" };
+            // elegant central layout
+            titleSlide.addText(presTitle || "Untitled Presentation", {
+                x: 0.5, y: 1.8, w: 9, h: 1.2,
+                fontSize: 36, bold: true, color: primaryHex, align: "center"
+            });
+            if (presSubtitle) {
+                titleSlide.addText(presSubtitle, {
+                    x: 0.5, y: 3.1, w: 9, h: 0.6,
+                    fontSize: 18, italic: true, color: "#475569", align: "center"
+                });
+            }
+            titleSlide.addText(`${author}  |  ${organization}  |  ${date}`, {
+                x: 0.5, y: 4.2, w: 9, h: 0.5,
+                fontSize: 12, color: "#64748B", align: "center"
+            });
+            // Add small logo-like line
+            titleSlide.addShape(pptx.ShapeType.RECTANGLE, { x: 4, y: 5, w: 2, h: 0.08, fill: { color: secondaryHex } });
+            
+            // ---- Content slides (each slide from state) ----
+            for (let slide of slides) {
+                addContentSlide(slide.title, slide.content);
+            }
+            
+            // ---- Download file ----
+            const safeTitle = presTitle.replace(/[^a-z0-9]/gi, '_').substring(0, 40) || "slideforge_deck";
+            await pptx.writeFile({ fileName: `${safeTitle}_SlideForge.pptx` });
+        };
+
+        // Helper to reset all slides (optional)
+        const resetToDemo = () => {
+            if (confirm("Reset all slides to demo content? Unsaved changes will be lost.")) {
+                setSlides(getDefaultSlides());
+            }
+        };
+        
+        const clearAllSlides = () => {
+            if (slides.length <= 1) return;
+            if (confirm("Delete ALL slides except one starter slide?")) {
+                setSlides([slides[0]]);
+            }
+        };
+        
+        return (
+            <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30">
+                {/* Header */}
+                <div className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-20">
+                    <div className="max-w-7xl mx-auto px-4 lg:px-6 py-4 flex flex-wrap justify-between items-center gap-3">
+                        <div className="flex items-center gap-3">
+                            <i className="fas fa-chart-line text-indigo-600 text-2xl"></i>
+                            <h1 className="text-2xl font-bold tracking-tight text-gray-800">SlideForge <span className="text-sm font-normal text-gray-400 ml-1">McKinsey-Style · Elite Standards</span></h1>
+                        </div>
+                        <div className="flex gap-3">
+                            <button onClick={generatePPTX} className="bg-gradient-to-r from-indigo-700 to-indigo-900 text-white px-5 py-2 rounded-xl shadow-md hover:shadow-lg transition flex items-center gap-2 text-sm font-semibold"><i className="fas fa-download"></i> Download PPTX</button>
+                            <button onClick={resetToDemo} className="border border-gray-300 bg-white px-4 py-2 rounded-xl hover:bg-gray-50 transition text-sm font-medium"><i className="fas fa-sync-alt"></i> Demo Slides</button>
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="max-w-7xl mx-auto px-4 lg:px-6 py-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    {/* LEFT PANEL: Presentation Details + Theme */}
+                    <div className="lg:col-span-1 space-y-5">
+                        <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
+                            <h2 className="text-lg font-bold flex items-center gap-2 mb-4"><i className="fas fa-info-circle text-indigo-500"></i> 1. Presentation Details</h2>
+                            <div className="space-y-3">
+                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Presentation Title</label><input type="text" value={presTitle} onChange={e=>setPresTitle(e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm" placeholder="e.g. Digital Transformation Strategy"/></div>
+                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Subtitle / Tagline</label><input type="text" value={presSubtitle} onChange={e=>setPresSubtitle(e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm"/></div>
+                                <div className="grid grid-cols-2 gap-2"><div><label className="block text-xs uppercase font-semibold text-gray-500">Author</label><input type="text" value={author} onChange={e=>setAuthor(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div><div><label className="block text-xs uppercase font-semibold text-gray-500">Date</label><input type="text" value={date} onChange={e=>setDate(e.target.value)} className="w-full border rounded-lg p-2 text-sm"/></div></div>
+                                <div><label className="block text-xs uppercase font-semibold text-gray-500">Organization / University</label><input type="text" value={organization} onChange={e=>setOrganization(e.target.value)} className="w-full border border-gray-200 rounded-lg p-2 text-sm"/></div>
+                            </div>
+                        </div>
+                        
+                        {/* Color Theme Selector */}
+                        <div className="bg-white rounded-2xl shadow-md p-5">
+                            <h2 className="text-lg font-bold flex items-center gap-2 mb-3"><i className="fas fa-palette text-indigo-500"></i> 4. Color Theme</h2>
+                            <div className="flex flex-wrap gap-3 items-center">
+                                {Object.keys(COLOR_THEMES).map(theme => (
+                                    <div key={theme} className="flex flex-col items-center cursor-pointer" onClick={()=>setColorTheme(theme)}>
+                                        <div className="color-swatch" style={{ backgroundColor: COLOR_THEMES[theme].primary }}></div>
+                                        <span className={`text-[11px] mt-1 font-medium ${colorTheme === theme ? 'text-indigo-700' : 'text-gray-500'}`}>{theme}</span>
+                                    </div>
+                                ))}
+                            </div>
+                            <p className="text-xs text-gray-400 mt-3">Primary color influences slide titles & accents in PPTX</p>
+                        </div>
+                        
+                        <div className="bg-white/60 rounded-xl p-4 text-center text-sm text-gray-500">
+                            <i className="fas fa-magic mr-1"></i> Slides stored locally — refresh keeps your work.
+                        </div>
+                    </div>
+                    
+                    {/* RIGHT PANEL: Slide Topics & Content (slide list manager) */}
+                    <div className="lg:col-span-2">
+                        <div className="bg-white rounded-2xl shadow-md p-5 border border-gray-100">
+                            <div className="flex flex-wrap justify-between items-center border-b pb-3 mb-4">
+                                <h2 className="text-lg font-bold flex items-center gap-2"><i className="fas fa-layer-group text-indigo-500"></i> 2. Slide Topics & Content</h2>
+                                <div className="flex gap-2">
+                                    <button onClick={addSlide} className="bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-sm px-4 py-1.5 rounded-full flex items-center gap-1"><i className="fas fa-plus"></i> Add Slide</button>
+                                    <button onClick={clearAllSlides} className="text-gray-500 hover:text-red-500 text-sm px-3 py-1.5 rounded-full border border-gray-200"><i className="fas fa-trash-alt"></i> Clean</button>
+                                </div>
+                            </div>
+                            <div className="space-y-4 max-h-[65vh] overflow-y-auto pr-2 custom-scroll">
+                                {slides.map((slide, idx) => (
+                                    <div key={slide.id} className="slide-card bg-gray-50 rounded-xl border border-gray-200 p-4 transition group">
+                                        <div className="flex justify-between items-start gap-2 mb-2">
+                                            <div className="flex-1 flex items-center gap-2">
+                                                <span className="text-xs font-bold bg-gray-200 text-gray-700 rounded-full w-6 h-6 flex items-center justify-center">{idx+1}</span>
+                                                <input 
+                                                    type="text" 
+                                                    value={slide.title} 
+                                                    onChange={(e) => updateSlide(slide.id, 'title', e.target.value)}
+                                                    className="font-semibold text-gray-800 bg-transparent border-b border-transparent focus:border-indigo-300 focus:outline-none text-md px-1 w-full"
+                                                    placeholder="Slide title"
+                                                />
+                                            </div>
+                                            <div className="flex gap-1 opacity-70 group-hover:opacity-100">
+                                                <button onClick={() => moveSlide(idx, 'up')} disabled={idx===0} className={`p-1 rounded ${idx===0 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}><i className="fas fa-chevron-up text-xs"></i></button>
+                                                <button onClick={() => moveSlide(idx, 'down')} disabled={idx===slides.length-1} className={`p-1 rounded ${idx===slides.length-1 ? 'text-gray-300' : 'text-gray-600 hover:bg-gray-200'}`}><i className="fas fa-chevron-down text-xs"></i></button>
+                                                <button onClick={() => removeSlide(slide.id)} className="p-1 rounded text-red-400 hover:text-red-600 hover:bg-red-50"><i className="fas fa-times"></i></button>
+                                            </div>
+                                        </div>
+                                        <textarea 
+                                            rows={4}
+                                            value={slide.content}
+                                            onChange={(e) => updateSlide(slide.id, 'content', e.target.value)}
+                                            className="w-full border border-gray-200 rounded-lg p-2 text-sm font-mono focus:ring-1 focus:ring-indigo-200"
+                                            placeholder="• Bullet points using dash or asterisk&#10;- Point one&#10;• Second point&#10;Regular paragraph text"
+                                        />
+                                        <div className="text-right text-[11px] text-gray-400 mt-1 flex justify-between">
+                                            <span><i className="far fa-comment-dots"></i> Supports bullet lists ( - or • )</span>
+                                            <span>{slide.content.length} chars</span>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                            <div className="mt-4 pt-2 text-center text-xs text-gray-400 border-t">
+                                <i className="fas fa-save"></i> Auto‑saved to browser storage • Each slide appears as a separate PPT slide
+                            </div>
+                        </div>
+                        
+                        {/* Quick tip: McKinsey formatting */}
+                        <div className="mt-4 bg-indigo-50/40 rounded-xl p-3 flex items-start gap-3 text-sm">
+                            <i className="fas fa-chalkboard-teacher text-indigo-400 text-lg"></i>
+                            <div><span className="font-semibold">Elite Tip:</span> Use dash `-` or bullet `•` at line start for automatic bullet points in PowerPoint. Headlines stay crisp with the chosen theme color.</div>
+                        </div>
+                    </div>
+                </div>
+                
+                {/* bottom bar: show current slide count */}
+                <div className="text-center text-gray-400 text-xs py-5 border-t border-gray-200 mt-6 bg-white/40">
+                    <i className="fas fa-microphone-alt mr-1"></i> SlideForge • {slides.length} slide(s) ready • McKinsey‑grade structure • Export to .pptx
+                </div>
+            </div>
+        );
+    };
+    
+    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
 </script>
 </body>
 </html>
