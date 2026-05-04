@@ -8,8 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400;14..32,500;14..32,600;14..32,700&display=swap" rel="stylesheet">
-    <!-- PPTXGenJS -->
-    <script src="https://cdn.jsdelivr.net/npm/pptxgenjs@3.12.0/dist/pptxgen.bundle.js"></script>
+    <!-- PPTXGenJS from Skypack (more reliable) -->
+    <script src="https://cdn.skypack.dev/pptxgenjs@3.12.0"></script>
     <style>
         * { font-family: 'Inter', sans-serif; }
         body { background: #f1f4f9; }
@@ -28,6 +28,7 @@
 
 <div id="root"></div>
 
+<!-- React + ReactDOM + Babel -->
 <script src="https://cdn.jsdelivr.net/npm/react@18.2.0/umd/react.development.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/react-dom@18.2.0/umd/react-dom.development.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@babel/standalone/babel.min.js"></script>
@@ -71,6 +72,19 @@
             }
             return getDefaultSlides();
         });
+        const [pptReady, setPptReady] = React.useState(false);
+        
+        // Check if PPTXGenJS is loaded
+        React.useEffect(() => {
+            const checkLib = () => {
+                if (window.PptxGenJS) {
+                    setPptReady(true);
+                } else {
+                    setTimeout(checkLib, 200);
+                }
+            };
+            checkLib();
+        }, []);
         
         React.useEffect(() => {
             localStorage.setItem(STORAGE_KEY, JSON.stringify({ presTitle, presSubtitle, author, date, organization, colorTheme, slides }));
@@ -105,10 +119,13 @@
         const resetToDemo = () => { if(confirm("Reset to demo?")) setSlides(getDefaultSlides()); };
         const clearAllSlides = () => { if(slides.length <= 1) return; if(confirm("Keep only first slide?")) setSlides([slides[0]]); };
         
-        // ---- FIXED PPTX GENERATION (no shape errors) ----
+        // ---- ROBUST PPTX GENERATION with library check ----
         const generatePPTX = async () => {
+            if (!pptReady) {
+                alert("PPTX library is still loading. Please wait a moment and try again.");
+                return;
+            }
             try {
-                if (typeof PptxGenJS === 'undefined') throw new Error("PPTX library not loaded");
                 const PptxGenJS = window.PptxGenJS;
                 const pptx = new PptxGenJS();
                 pptx.layout = 'LAYOUT_WIDE';
@@ -139,14 +156,12 @@
                 titleSlide.addText(presTitle, { x: 0.5, y: 1.8, w: 9, h: 1.2, fontSize: 36, bold: true, color: primary, align: "center" });
                 if (presSubtitle) titleSlide.addText(presSubtitle, { x: 0.5, y: 3.1, w: 9, h: 0.6, fontSize: 18, italic: true, color: "#475569", align: "center" });
                 titleSlide.addText(`${author} | ${organization} | ${date}`, { x: 0.5, y: 4.2, w: 9, h: 0.5, fontSize: 12, color: "#64748B", align: "center" });
-                // simple line instead of shape to avoid errors
                 titleSlide.addText("", { x: 4, y: 5, w: 2, h: 0.08, fill: { color: secondary } });
                 
                 // ---- CONTENT SLIDES ----
                 for (let slide of slides) {
                     const s = pptx.addSlide();
                     s.addText(slide.title || "Untitled", { x: 0.5, y: 0.4, w: 9, h: 0.8, fontSize: 28, bold: true, color: primary });
-                    // accent line as text-backed rectangle
                     s.addText("", { x: 0.5, y: 1.2, w: 1.2, h: 0.08, fill: { color: secondary } });
                     const textBody = makeTextBody(slide.content);
                     s.addText(textBody, { x: 0.5, y: 1.5, w: 8.5, h: 3.5, fontSize: 14, color: "#334155", bullet: true, lineSpacing: 20 });
@@ -155,7 +170,7 @@
                 
                 const fileName = `${presTitle.replace(/[^a-z0-9]/gi, '_').slice(0, 40)}_SlideForge.pptx`;
                 await pptx.writeFile({ fileName });
-                alert("✅ Presentation saved successfully!");
+                alert("✅ Presentation downloaded successfully!");
             } catch (err) {
                 console.error(err);
                 alert("Export error: " + err.message);
@@ -171,7 +186,9 @@
                             <h1 className="text-2xl font-bold">SlideForge <span className="text-sm font-normal text-gray-400">McKinsey-Style · Elite Standards</span></h1>
                         </div>
                         <div className="flex gap-3">
-                            <button onClick={generatePPTX} className="bg-indigo-700 text-white px-5 py-2 rounded-xl shadow-md flex items-center gap-2"><i className="fas fa-download"></i> Download PPTX</button>
+                            <button onClick={generatePPTX} disabled={!pptReady} className={`px-5 py-2 rounded-xl shadow-md flex items-center gap-2 transition ${pptReady ? 'bg-indigo-700 text-white hover:bg-indigo-800' : 'bg-gray-300 text-gray-500 cursor-not-allowed'}`}>
+                                <i className="fas fa-download"></i> {pptReady ? "Download PPTX" : "Loading Library..."}
+                            </button>
                             <button onClick={resetToDemo} className="border border-gray-300 bg-white px-4 py-2 rounded-xl"><i className="fas fa-sync-alt"></i> Demo Slides</button>
                         </div>
                     </div>
@@ -240,7 +257,10 @@
         );
     };
     
-    ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    // Wait for DOM and library before rendering
+    window.addEventListener('load', () => {
+        ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+    });
 </script>
 </body>
 </html>
